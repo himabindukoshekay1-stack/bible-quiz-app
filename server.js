@@ -19,7 +19,7 @@ const openai = new OpenAI({
 
 const rooms = {};
 
-const QUESTION_TIME = 15;
+const QUESTION_TIME = 30;
 const REVEAL_TIME = 5;
 
 function createPin() {
