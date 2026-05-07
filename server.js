@@ -10,6 +10,12 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 const rooms = {};
 const QUESTION_TIME = 15;
 const REVEAL_TIME = 5;
@@ -120,6 +126,15 @@ async function generateQuestions(book, chapter, count = 30, type = "mixed") {
   ];
 
   const questions = [];
+  if (type === "TOUGH_MCQ") {
+  return await generateAiMcqQuestions({
+    version: "WEB",
+    book,
+    chapter,
+    verses,
+    count,
+  });
+}
 
   if (type === "verse-5-each") {
   for (const verse of verses) {
@@ -623,3 +638,67 @@ const PORT = process.env.PORT || 4000;
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`App running on port ${PORT}`);
 });
+
+async function generateAiMcqQuestions({
+  version,
+  book,
+  chapter,
+  verses,
+  count,
+}) {
+  const verseText = verses
+    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
+    .join("\n");
+
+  const prompt = `
+Create ${count} hard Bible multiple choice questions.
+
+Bible version: ${version}
+Book: ${book}
+Chapter: ${chapter}
+
+Use ONLY this chapter text:
+${verseText}
+
+Return ONLY valid JSON array.
+No markdown.
+No explanation.
+
+Format:
+[
+  {
+    "type": "mcq",
+    "question": "question text",
+    "options": ["option A", "option B", "option C", "option D"],
+    "answer": "exact correct option"
+  }
+]
+
+Rules:
+- Do NOT make the correct option the full verse.
+- Do NOT make obvious wrong answers.
+- Make wrong answers similar and believable.
+- Questions should test meaning, sequence, speaker, action, location, or missing phrase.
+- Answer must exactly match one of the 4 options.
+- Keep options short.
+`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create accurate Bible quiz questions. Return only valid JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+    temperature: 0.7,
+  });
+
+  const text = response.choices[0].message.content.trim();
+  return JSON.parse(text);
+}

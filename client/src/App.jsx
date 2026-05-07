@@ -345,6 +345,7 @@ function App() {
 
         <select
           value={questionType}
+		  <option value="TOUGH_MCQ">HARD Multiple Choice</option>
           onChange={(e) => setQuestionType(e.target.value)}
         >
           <option value="mcq">Multiple Choice</option>
