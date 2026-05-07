@@ -343,12 +343,12 @@ hr {
   .pin-row {
     position: static;
     justify-self: center;
-    font-size: 14px;
+    font-size: 24px;
     order: 2;
   }
 
   .pin {
-    font-size: 24px;
+    font-size: 16px;
     padding: 4px 8px;
     letter-spacing: 1px;
   }
