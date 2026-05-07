@@ -18,12 +18,6 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const rooms = {};
 const QUESTION_TIME = 15;
 const REVEAL_TIME = 5;
@@ -201,7 +195,21 @@ Format:
   return JSON.parse(text);
 }
 
+async function generateQuestions(
+  book,
+  chapter,
+  count = 20,
+  type = "mixed"
+) {
+  const data = await getBibleChapter(book, chapter);
 
+  return await generateAiQuestions(
+    book,
+    chapter,
+    data.verses,
+    count
+  );
+}
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
