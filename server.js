@@ -1,3 +1,11 @@
+require("dotenv").config();
+
+const OpenAI = require("openai");
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -111,12 +119,115 @@ function createSmartWrongOptions(correctText, allTexts, count = 3) {
   }
 
   return selected;
+  
 }
 
-async function generateQuestions(book, chapter, count = 30, type = "mixed") {
-  const bibleData = await getBibleChapter(book, chapter);
-  const chapterText = bibleData.text;
-  const verses = bibleData.verses;
+
+async function generateAiQuestions(
+  book,
+  chapter,
+  verses,
+  count = 20
+) {
+  const verseText = verses
+    .map(
+      (v) =>
+        `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
+    )
+    .join("\\n");
+
+  const prompt = `
+Create ${count} difficult Bible quiz questions.
+
+Book: ${book}
+Chapter: ${chapter}
+Translation: WEB Bible
+
+Use ONLY this chapter text:
+
+${verseText}
+
+Rules:
+- Return ONLY valid JSON
+- No markdown
+- Questions must be difficult
+- Wrong answers must be believable
+- Do not use full verses as options
+- Use short answer choices
+- Include:
+  - MCQ
+  - fill blanks
+  - meaning
+  - sequence
+  - who said it
+  - missing phrase
+
+Format:
+
+[
+  {
+    "type":"mcq",
+    "question":"question",
+    "options":["A","B","C","D"],
+    "answer":"correct option"
+  },
+  {
+    "type":"fill",
+    "question":"question",
+    "answer":"correct answer"
+  }
+]
+`;
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.8,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create high quality Bible quiz questions.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
+
+  const text =
+    response.choices[0].message.content.trim();
+
+  return JSON.parse(text);
+}
+
+
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.8,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You generate high quality Bible quiz questions in strict JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
+
+  const text = response.choices[0].message.content.trim();
+
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error(text);
+    throw new Error("AI returned invalid JSON");
+  }
+}
 
   const wrongOptions = [
     "This is not in the selected chapter",
