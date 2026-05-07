@@ -1,16 +1,11 @@
 require("dotenv").config();
 
-const OpenAI = require("openai");
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const path = require("path");
 const { Server } = require("socket.io");
+const OpenAI = require("openai");
 
 const app = express();
 app.use(cors());
@@ -18,7 +13,12 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 const rooms = {};
+
 const QUESTION_TIME = 15;
 const REVEAL_TIME = 5;
 
@@ -57,78 +57,82 @@ async function getBibleChapter(book, chapter) {
 }
 
 function clean(text) {
-  return text.replace(/\n/g, " ").replace(/\s+/g, " ").trim();
+  return String(text || "")
+    .replace(/\n/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function shuffle(arr) {
   return [...arr].sort(() => Math.random() - 0.5);
 }
 
-function createSmartWrongOptions(correctText, allTexts, count = 3) {
-  const correct = clean(correctText);
+function safeJsonParse(text) {
+  let cleaned = text.trim();
 
-  const correctWords = correct
-    .toLowerCase()
-    .split(/\s+/)
-    .filter((w) => w.length > 3);
-
-  const candidates = allTexts
-    .map((t) => clean(t))
-    .filter((t) => {
-      if (!t) return false;
-      if (t === correct) return false;
-      if (t.length < 30) return false;
-
-      const words = t
-        .toLowerCase()
-        .split(/\s+/)
-        .filter((w) => w.length > 3);
-
-      const shared = words.filter((w) =>
-        correctWords.includes(w)
-      ).length;
-
-      const similarLength =
-        Math.abs(t.length - correct.length) < 80;
-
-      return shared >= 3 && similarLength;
-    });
-
-  const unique = [...new Set(candidates)];
-
-  let selected = shuffle(unique).slice(0, count);
-
-  if (selected.length < count) {
-    const fillers = shuffle(
-      allTexts.filter(
-        (t) =>
-          t &&
-          t !== correct &&
-          !selected.includes(t) &&
-          t.length > 30
-      )
-    );
-
-    selected = [...selected, ...fillers].slice(0, count);
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned
+      .replace(/^```json/i, "")
+      .replace(/^```/i, "")
+      .replace(/```$/i, "")
+      .trim();
   }
 
-  return selected;
-  
+  return JSON.parse(cleaned);
 }
 
+function validateQuestions(rawQuestions, count) {
+  if (!Array.isArray(rawQuestions)) {
+    throw new Error("AI response was not an array");
+  }
 
-async function generateAiQuestions(
-  book,
-  chapter,
-  verses,
-  count = 20
-) {
+  const valid = rawQuestions
+    .filter((q) => q && typeof q.question === "string")
+    .map((q) => {
+      if (q.type === "fill") {
+        return {
+          type: "fill",
+          question: q.question,
+          answer: String(q.answer || "").trim(),
+        };
+      }
+
+      const options = Array.isArray(q.options)
+        ? q.options.map((o) => String(o).trim()).filter(Boolean)
+        : [];
+
+      const uniqueOptions = [...new Set(options)].slice(0, 4);
+      const answer = String(q.answer || "").trim();
+
+      if (uniqueOptions.length < 4 || !uniqueOptions.includes(answer)) {
+        return null;
+      }
+
+      return {
+        type: "mcq",
+        question: q.question,
+        options: shuffle(uniqueOptions),
+        answer,
+      };
+    })
+    .filter(Boolean)
+    .filter((q) => q.answer);
+
+  if (valid.length === 0) {
+    throw new Error("No valid AI questions generated");
+  }
+
+  return valid.slice(0, count);
+}
+
+async function generateAiQuestions(book, chapter, verses, count = 20, type = "mixed") {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("Missing OPENAI_API_KEY");
+  }
+
   const verseText = verses
-    .map(
-      (v) =>
-        `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
-    )
-    .join("\\n");
+    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
+    .join("\n");
 
   const prompt = `
 Create ${count} difficult Bible quiz questions.
@@ -136,51 +140,50 @@ Create ${count} difficult Bible quiz questions.
 Book: ${book}
 Chapter: ${chapter}
 Translation: WEB Bible
+Quiz type selected by host: ${type}
 
 Use ONLY this chapter text:
-
 ${verseText}
 
-Rules:
-- Return ONLY valid JSON
-- No markdown
-- Questions must be difficult
-- Wrong answers must be believable
-- Do not use full verses as options
-- Use short answer choices
-- Include:
-  - MCQ
-  - fill blanks
-  - meaning
-  - sequence
-  - who said it
-  - missing phrase
+Return ONLY valid JSON array. No markdown. No explanation.
 
-Format:
-
+JSON format:
 [
   {
-    "type":"mcq",
-    "question":"question",
-    "options":["A","B","C","D"],
-    "answer":"correct option"
+    "type": "mcq",
+    "question": "question text",
+    "options": ["short option A", "short option B", "short option C", "short option D"],
+    "answer": "exact correct option"
   },
   {
-    "type":"fill",
-    "question":"question",
-    "answer":"correct answer"
+    "type": "fill",
+    "question": "fill blank question",
+    "answer": "short correct answer"
   }
 ]
+
+Rules:
+- Make questions harder than basic recall.
+- Do NOT use full verses as multiple-choice options.
+- Multiple-choice options must be short phrases, names, places, actions, meanings, or missing phrases.
+- Wrong answers must be believable and similar.
+- Correct answer must exactly match one option.
+- Use a mix of meaning, sequence, speaker, action, location, missing phrase, and context.
+- If type is "mcq" or "ai-mcq", return only mcq questions.
+- If type is "fill", return only fill questions.
+- If type is "mixed", return both mcq and fill questions.
+- If type includes "verse", include verse references in the question text.
+- For "verse-5-each", create open-answer/fill-style questions per verse.
 `;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 0.8,
+    temperature: 0.75,
     messages: [
       {
         role: "system",
         content:
-          "You create high quality Bible quiz questions.",
+          "You create accurate, difficult Bible quiz questions. Return only valid JSON.",
       },
       {
         role: "user",
@@ -189,229 +192,37 @@ Format:
     ],
   });
 
-  const text =
-    response.choices[0].message.content.trim();
+  const text = response.choices[0].message.content || "";
+  const parsed = safeJsonParse(text);
 
-  return JSON.parse(text);
+  return validateQuestions(parsed, count);
 }
 
-async function generateQuestions(
-  book,
-  chapter,
-  count = 20,
-  type = "mixed"
-) {
-  const data = await getBibleChapter(book, chapter);
+async function generateQuestions(book, chapter, count = 20, type = "mixed") {
+  const bibleData = await getBibleChapter(book, chapter);
 
   return await generateAiQuestions(
     book,
     chapter,
-    data.verses,
-    count
+    bibleData.verses,
+    Number(count) || 20,
+    type || "mixed"
   );
 }
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.8,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You generate high quality Bible quiz questions in strict JSON.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
-
-  const text = response.choices[0].message.content.trim();
-
-  try {
-    return JSON.parse(text);
-  } catch (err) {
-    console.error(text);
-    throw new Error("AI returned invalid JSON");
-  }
-}
-
-  const wrongOptions = [
-    "This is not in the selected chapter",
-    "God forgot His people",
-    "The chapter teaches people to ignore faith",
-    "No lesson is taught in this verse",
-  ];
-
-  const questions = [];
-  if (type === "TOUGH_MCQ") {
-  return await generateAiMcqQuestions({
-    version: "WEB",
-    book,
-    chapter,
-    verses,
-    count,
-  });
-}
-
-  if (type === "verse-5-each") {
-  for (const verse of verses) {
-    const verseText = clean(verse.text);
-    if (!verseText || verseText.length < 20) continue;
-
-    const words = verseText.split(" ");
-    const middleIndex = Math.floor(words.length / 2);
-    const answerWord = words[middleIndex]?.replace(/[^a-zA-Z]/g, "");
-
-    questions.push({
-      type: "fill",
-      question: `${book} ${chapter}:${verse.verse} — What is the full verse?`,
-      answer: verseText,
-    });
-
-    questions.push({
-      type: "fill",
-      question: `Which verse reference says: "${verseText}"?`,
-      answer: `${book} ${chapter}:${verse.verse}`,
-    });
-
-    questions.push({
-      type: "fill",
-      question: `${book} ${chapter}:${verse.verse} — Type one important word from this verse.`,
-      answer: answerWord || words[0],
-    });
-
-    if (words.length > 6 && answerWord && answerWord.length > 2) {
-      const fillWords = [...words];
-      fillWords[middleIndex] = "______";
-
-      questions.push({
-        type: "fill",
-        question: `${book} ${chapter}:${verse.verse} — ${fillWords.join(" ")}`,
-        answer: answerWord,
-      });
-    }
-
-    questions.push({
-      type: "fill",
-      question: `${book} ${chapter}:${verse.verse} — What book is this verse from?`,
-      answer: book,
-    });
-  }
-
-  return questions;
-}
-  
-
-  const isVerseType = type.startsWith("verse");
-
-  if (isVerseType) {
-    for (const verse of verses) {
-      if (questions.length >= count) break;
-
-      const verseText = clean(verse.text);
-      if (!verseText || verseText.length < 20) continue;
-
-      if (type === "verse-mcq" || type === "verse-mixed") {
-        questions.push({
-          type: "mcq",
-          question: `${book} ${chapter}:${verse.verse} — identify the exact wording from this verse.`,
-          options: shuffle([verseText, ...wrongOptions.slice(0, 3)]),
-          answer: verseText,
-        });
-      }
-
-      if (type === "verse-fill" || type === "verse-mixed") {
-        const words = verseText.split(" ");
-
-        if (words.length > 6 && questions.length < count) {
-          const importantIndexes = words
-  .map((w, i) => ({ w, i }))
-  .filter(
-    (x) =>
-      x.w.length > 5 &&
-      ![
-        "therefore",
-        "because",
-        "people",
-        "Israel",
-        "Jesus",
-        "Christ",
-      ].includes(x.w.toLowerCase())
-  );
-
-const randomWord =
-  importantIndexes[
-    Math.floor(Math.random() * importantIndexes.length)
-  ];
-
-const index = randomWord
-  ? randomWord.i
-  : Math.floor(words.length / 2);
-          const answerWord = words[index].replace(/[^a-zA-Z]/g, "");
-
-          if (answerWord.length > 2) {
-            words[index] = "______";
-
-            questions.push({
-              type: "fill",
-              question: `${book} ${chapter}:${verse.verse} — ${words.join(
-                " "
-              )}`,
-              answer: answerWord,
-            });
-          }
-        }
-      }
-    }
-
-    return shuffle(questions).slice(0, count);
-  }
-
-  const chapterSentences = clean(chapterText)
-    .split(/[.!?]/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 35);
-
-  for (let i = 0; i < chapterSentences.length && questions.length < count; i++) {
-    const sentence = chapterSentences[i];
-
-    if (type === "mcq" || type === "mixed") {
-      questions.push({
-        type: "mcq",
-        question: `Which statement most accurately reflects ${book} ${chapter}?`,
-        options: shuffle([sentence, ...wrongOptions.slice(0, 3)]),
-        answer: sentence,
-      });
-    }
-
-    if (type === "fill" || type === "mixed") {
-      const words = sentence.split(" ");
-
-      if (words.length > 6) {
-        const index = Math.floor(words.length / 2);
-        const answerWord = words[index].replace(/[^a-zA-Z]/g, "");
-
-        if (answerWord.length > 2) {
-          words[index] = "______";
-
-          questions.push({
-            type: "fill",
-            question: words.join(" "),
-            answer: answerWord,
-          });
-        }
-      }
-    }
-  }
-
-  return shuffle(questions).slice(0, count);
-}
-
 
 function leaderboard(room) {
   return Object.values(room.players).sort((a, b) => b.score - a.score);
+}
+
+function leaderboardWithStatus(room) {
+  return leaderboard(room).map((p) => ({
+    ...p,
+    status: room.answers[p.id]
+      ? room.answers[p.id].correct
+        ? "correct"
+        : "wrong"
+      : "pending",
+  }));
 }
 
 function clearRoomTimers(room) {
@@ -446,6 +257,8 @@ function sendQuestion(pin) {
     timeLeft: room.timeLeft,
   });
 
+  io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+
   room.timer = setInterval(() => {
     if (room.status !== "question") return;
 
@@ -472,7 +285,7 @@ function reveal(pin) {
 
   io.to(pin).emit("revealAnswer", {
     correctAnswer: q.answer,
-    leaderboard: leaderboard(room),
+    leaderboard: leaderboardWithStatus(room),
   });
 
   room.revealTimeout = setTimeout(() => {
@@ -482,7 +295,7 @@ function reveal(pin) {
       room.status = "finished";
 
       io.to(pin).emit("gameOver", {
-        leaderboard: leaderboard(room),
+        leaderboard: leaderboardWithStatus(room),
       });
 
       return;
@@ -521,14 +334,14 @@ io.on("connection", (socket) => {
     }
 
     try {
-      socket.emit("errorMessage", "Loading quiz...");
+      socket.emit("errorMessage", "Loading AI quiz...");
 
       clearRoomTimers(room);
 
       room.questions = await generateQuestions(
         book,
         chapter,
-        Number(count) || 30,
+        Number(count) || 20,
         type || "mixed"
       );
 
@@ -539,9 +352,14 @@ io.on("connection", (socket) => {
       io.to(pin).emit("quizSet", {
         count: room.questions.length,
       });
+
+      socket.emit("errorMessage", `Loaded ${room.questions.length} AI questions`);
     } catch (e) {
-      console.error(e);
-      socket.emit("errorMessage", "Failed to load quiz");
+      console.error("Quiz generation failed:", e);
+      socket.emit(
+        "errorMessage",
+        e.message || "Failed to load AI quiz"
+      );
     }
   });
 
@@ -565,13 +383,7 @@ io.on("connection", (socket) => {
     };
 
     socket.join(pin);
-    io.to(pin).emit(
-    "playersUpdate",
-    leaderboard(room).map((p) => ({
-    ...p,
-    status: "pending",
-  }))
-);
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
   });
 
   socket.on("startGame", (pin) => {
@@ -647,14 +459,7 @@ io.on("connection", (socket) => {
     room.answers = {};
 
     io.to(pin).emit("gameStopped", {
-      leaderboard: leaderboard(room).map((p) => ({
-      ...p,
-     status: room.answers[p.id]
-    ? room.answers[p.id].correct
-      ? "correct"
-      : "wrong"
-    : "pending",
-})),
+      leaderboard: leaderboardWithStatus(room),
     });
   });
 
@@ -672,7 +477,7 @@ io.on("connection", (socket) => {
     room.answers = {};
     room.status = "started";
 
-    io.to(pin).emit("playersUpdate", leaderboard(room));
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
     sendQuestion(pin);
   });
 
@@ -705,27 +510,21 @@ io.on("connection", (socket) => {
     const correctAnswer = String(q.answer).trim().toLowerCase();
 
     const correct =
-      q.type === "fill" ? userAnswer === correctAnswer : answer === q.answer;
+      q.type === "fill"
+        ? userAnswer === correctAnswer
+        : String(answer).trim() === String(q.answer).trim();
 
     if (correct) {
       player.score += 500 + room.timeLeft * 30;
     }
 
     room.answers[socket.id] = {
-    answer,
-    correct,
+      answer,
+      correct,
     };
 
     socket.emit("answerSubmitted", { correct });
-    io.to(pin).emit("playersUpdate",  leaderboard(room).map((p) => ({
-    ...p,
-    status: room.answers[p.id]
-      ? room.answers[p.id].correct
-        ? "correct"
-        : "wrong"
-      : "pending",
-  }))
-);
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
   });
 
   socket.on("disconnect", () => {
@@ -739,13 +538,12 @@ io.on("connection", (socket) => {
         clearRoomTimers(room);
         delete rooms[pin];
       } else {
-        io.to(pin).emit("playersUpdate", leaderboard(room));
+        io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
       }
     }
   });
 });
 
-// Serve React frontend build
 app.use(express.static(path.join(__dirname, "client", "dist")));
 
 app.get(/.*/, (req, res) => {
@@ -757,67 +555,3 @@ const PORT = process.env.PORT || 4000;
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`App running on port ${PORT}`);
 });
-
-async function generateAiMcqQuestions({
-  version,
-  book,
-  chapter,
-  verses,
-  count,
-}) {
-  const verseText = verses
-    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
-    .join("\n");
-
-  const prompt = `
-Create ${count} hard Bible multiple choice questions.
-
-Bible version: ${version}
-Book: ${book}
-Chapter: ${chapter}
-
-Use ONLY this chapter text:
-${verseText}
-
-Return ONLY valid JSON array.
-No markdown.
-No explanation.
-
-Format:
-[
-  {
-    "type": "mcq",
-    "question": "question text",
-    "options": ["option A", "option B", "option C", "option D"],
-    "answer": "exact correct option"
-  }
-]
-
-Rules:
-- Do NOT make the correct option the full verse.
-- Do NOT make obvious wrong answers.
-- Make wrong answers similar and believable.
-- Questions should test meaning, sequence, speaker, action, location, or missing phrase.
-- Answer must exactly match one of the 4 options.
-- Keep options short.
-`;
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [
-      {
-        role: "system",
-        content:
-          "You create accurate Bible quiz questions. Return only valid JSON.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-    temperature: 0.7,
-  });
-
-  const text = response.choices[0].message.content.trim();
-  return JSON.parse(text);
-}
