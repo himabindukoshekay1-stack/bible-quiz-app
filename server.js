@@ -334,7 +334,7 @@ io.on("connection", (socket) => {
     }
 
     try {
-      socket.emit("errorMessage", "Loading AI quiz...");
+      socket.emit("errorMessage", "******Loading the quiz questions pls wait ...");
 
       clearRoomTimers(room);
 
