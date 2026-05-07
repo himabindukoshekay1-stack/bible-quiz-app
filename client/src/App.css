@@ -325,3 +325,39 @@ hr {
   color: #2f5d50;
   margin-top: 22px;
 }
+
+@media (max-width: 650px) {
+  .host-header {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .host-title {
+    grid-column: auto;
+    font-size: 28px;
+    order: 1;
+  }
+
+  .pin-row {
+    position: static;
+    justify-self: center;
+    font-size: 14px;
+    order: 2;
+  }
+
+  .pin {
+    font-size: 14px;
+    padding: 4px 8px;
+    letter-spacing: 1px;
+  }
+
+  .timer-box {
+    position: static;
+    justify-self: center;
+    font-size: 18px;
+    padding: 6px 12px;
+    order: 3;
+  }
+}
