@@ -59,39 +59,52 @@ function shuffle(arr) {
 function createSmartWrongOptions(correctText, allTexts, count = 3) {
   const correct = clean(correctText);
 
+  const correctWords = correct
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((w) => w.length > 3);
+
   const candidates = allTexts
     .map((t) => clean(t))
     .filter((t) => {
       if (!t) return false;
       if (t === correct) return false;
-      if (t.length < 25) return false;
+      if (t.length < 30) return false;
 
-      const lengthClose = Math.abs(t.length - correct.length) < 120;
+      const words = t
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((w) => w.length > 3);
 
-      const correctWords = correct.toLowerCase().split(/\s+/);
-      const optionWords = t.toLowerCase().split(/\s+/);
-
-      const sharedWords = optionWords.filter((w) =>
+      const shared = words.filter((w) =>
         correctWords.includes(w)
       ).length;
 
-      return lengthClose && sharedWords >= 2;
+      const similarLength =
+        Math.abs(t.length - correct.length) < 80;
+
+      return shared >= 3 && similarLength;
     });
 
   const unique = [...new Set(candidates)];
 
-  const selected = shuffle(unique).slice(0, count);
+  let selected = shuffle(unique).slice(0, count);
 
-  while (selected.length < count) {
-    const fallback = shuffle(allTexts)
-      .map((t) => clean(t))
-      .find((t) => t && t !== correct && !selected.includes(t));
+  if (selected.length < count) {
+    const fillers = shuffle(
+      allTexts.filter(
+        (t) =>
+          t &&
+          t !== correct &&
+          !selected.includes(t) &&
+          t.length > 30
+      )
+    );
 
-    if (!fallback) break;
-    selected.push(fallback);
+    selected = [...selected, ...fillers].slice(0, count);
   }
 
-  return selected.slice(0, count);
+  return selected;
 }
 
 async function generateQuestions(book, chapter, count = 30, type = "mixed") {
@@ -169,7 +182,7 @@ async function generateQuestions(book, chapter, count = 30, type = "mixed") {
       if (type === "verse-mcq" || type === "verse-mixed") {
         questions.push({
           type: "mcq",
-          question: `${book} ${chapter}:${verse.verse} — which statement comes from this verse?`,
+          question: `${book} ${chapter}:${verse.verse} — identify the exact wording from this verse.`,
           options: shuffle([verseText, ...wrongOptions.slice(0, 3)]),
           answer: verseText,
         });
@@ -179,7 +192,29 @@ async function generateQuestions(book, chapter, count = 30, type = "mixed") {
         const words = verseText.split(" ");
 
         if (words.length > 6 && questions.length < count) {
-          const index = Math.floor(words.length / 2);
+          const importantIndexes = words
+  .map((w, i) => ({ w, i }))
+  .filter(
+    (x) =>
+      x.w.length > 5 &&
+      ![
+        "therefore",
+        "because",
+        "people",
+        "Israel",
+        "Jesus",
+        "Christ",
+      ].includes(x.w.toLowerCase())
+  );
+
+const randomWord =
+  importantIndexes[
+    Math.floor(Math.random() * importantIndexes.length)
+  ];
+
+const index = randomWord
+  ? randomWord.i
+  : Math.floor(words.length / 2);
           const answerWord = words[index].replace(/[^a-zA-Z]/g, "");
 
           if (answerWord.length > 2) {
@@ -211,7 +246,7 @@ async function generateQuestions(book, chapter, count = 30, type = "mixed") {
     if (type === "mcq" || type === "mixed") {
       questions.push({
         type: "mcq",
-        question: `According to ${book} ${chapter}, which statement is true?`,
+        question: `Which statement most accurately reflects ${book} ${chapter}?`,
         options: shuffle([sentence, ...wrongOptions.slice(0, 3)]),
         answer: sentence,
       });
