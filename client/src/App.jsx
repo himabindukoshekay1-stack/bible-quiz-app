@@ -348,7 +348,7 @@ function App() {
   onChange={(e) => setQuestionType(e.target.value)}
 >
   <option value="mcq">Multiple Choice</option>
-  <option value="ai-mcq">AI Multiple Choice</option>
+  <option value="ai-mcq">TOUGH Multiple Choice</option>
   <option value="fill">Fill in the Blank</option>
   <option value="mixed">Mixed</option>
   <option value="verse-mcq">Verse-by-Verse MCQ</option>
