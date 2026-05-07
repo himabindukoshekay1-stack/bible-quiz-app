@@ -341,23 +341,23 @@ function App() {
           <option value={30}>30 Questions</option>
         </select>
 
-        <h3>Question Type</h3>
+<h3>Question Type</h3>
 
-        <select
-          value={questionType}
-		  <option value="TOUGH_MCQ">HARD Multiple Choice</option>
-          onChange={(e) => setQuestionType(e.target.value)}
-        >
-          <option value="mcq">Multiple Choice</option>
-          <option value="fill">Fill in the Blank</option>
-          <option value="mixed">Mixed</option>
-          <option value="verse-mcq">Verse-by-Verse MCQ</option>
-          <option value="verse-fill">Verse-by-Verse Fill Blank</option>
-          <option value="verse-mixed">Verse-by-Verse Mixed</option>
-          <option value="verse-5-each">
-            Every Verse - 5 Questions Each
-          </option>
-        </select>
+<select
+  value={questionType}
+  onChange={(e) => setQuestionType(e.target.value)}
+>
+  <option value="mcq">Multiple Choice</option>
+  <option value="ai-mcq">AI Multiple Choice</option>
+  <option value="fill">Fill in the Blank</option>
+  <option value="mixed">Mixed</option>
+  <option value="verse-mcq">Verse-by-Verse MCQ</option>
+  <option value="verse-fill">Verse-by-Verse Fill Blank</option>
+  <option value="verse-mixed">Verse-by-Verse Mixed</option>
+  <option value="verse-5-each">
+    Every Verse - 5 Questions Each
+  </option>
+</select>
 
         <button onClick={loadQuiz}>Load Quiz</button>
         <button onClick={startGame}>Start Game</button>
