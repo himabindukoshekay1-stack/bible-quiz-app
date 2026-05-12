@@ -29,7 +29,7 @@ function createPin() {
 async function getBibleChapter(book, chapter) {
   const url = `https://bible-api.com/${encodeURIComponent(
     book + " " + chapter
-  )}?translation=niv`;
+  )}?translation=web`;
 
   const res = await fetch(url);
   const contentType = res.headers.get("content-type") || "";
