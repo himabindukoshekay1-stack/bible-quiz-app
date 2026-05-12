@@ -353,7 +353,7 @@ io.on("connection", (socket) => {
         count: room.questions.length,
       });
 
-      socket.emit("errorMessage", `Loaded ${room.questions.length} AI questions`);
+      socket.emit("errorMessage", `Loaded ${room.questions.length} questions`);
     } catch (e) {
       console.error("Quiz generation failed:", e);
       socket.emit(
