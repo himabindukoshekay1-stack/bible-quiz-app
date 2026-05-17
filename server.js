@@ -53,16 +53,54 @@ function safeJsonParse(text) {
   return JSON.parse(cleaned);
 }
 
+const BOOK_CODES = {
+  Genesis: "GEN",
+  Exodus: "EXO",
+  Leviticus: "LEV",
+  Numbers: "NUM",
+  Deuteronomy: "DEU",
+  Joshua: "JOS",
+  Judges: "JDG",
+  Ruth: "RUT",
+  "1 Samuel": "1SA",
+  "2 Samuel": "2SA",
+  "1 Kings": "1KI",
+  "2 Kings": "2KI",
+  Psalms: "PSA",
+  Proverbs: "PRO",
+  Isaiah: "ISA",
+  Jeremiah: "JER",
+  Matthew: "MAT",
+  Mark: "MRK",
+  Luke: "LUK",
+  John: "JHN",
+  Acts: "ACT",
+  Romans: "ROM",
+  "1 Corinthians": "1CO",
+  "2 Corinthians": "2CO",
+  Galatians: "GAL",
+  Ephesians: "EPH",
+  Philippians: "PHP",
+  Colossians: "COL",
+  Hebrews: "HEB",
+  James: "JAS",
+  "1 Peter": "1PE",
+  "2 Peter": "2PE",
+  Revelation: "REV",
+};
+
 async function getBibleChapter(book, chapter) {
   const bibleId = process.env.NIV_BIBLE_ID;
 
-  const chapterId = `${book}.${chapter}`;
+  const chapterId = `${BOOK_CODES[book]}.${chapter}`;
 
   const url =
     `https://api.scripture.api.bible/v1/bibles/` +
     `${bibleId}/chapters/${encodeURIComponent(
       chapterId
     )}?content-type=json`;
+	
+  console.log(url);
 
   const res = await fetch(url, {
     headers: {
