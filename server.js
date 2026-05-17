@@ -80,7 +80,7 @@ async function getBibleChapter(book, chapter) {
   const html = data.data.content || "";
 
 const verseRegex =
-  /data-number="(\d+)"[^>]*>(.*?)<\/span>/g;
+  /data-number="(\\d+)"[^>]*>(.*?)<\/span>/g;
 
   const verses = [];
 
