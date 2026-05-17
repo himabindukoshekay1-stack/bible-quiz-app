@@ -26,35 +26,7 @@ function createPin() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function getBibleChapter(book, chapter) {
-  const url = `https://bible-api.com/${encodeURIComponent(
-    book + " " + chapter
-  )}?translation=web`;
 
-  const res = await fetch(url);
-  const contentType = res.headers.get("content-type") || "";
-
-  if (!res.ok) {
-    throw new Error(`Bible API failed: ${res.status}`);
-  }
-
-  if (!contentType.includes("application/json")) {
-    const html = await res.text();
-    console.log("Bible API returned non-JSON:", html.slice(0, 200));
-    throw new Error("Bible API returned HTML instead of JSON");
-  }
-
-  const data = await res.json();
-
-  if (!data.text && !data.verses) {
-    throw new Error("No Bible text found");
-  }
-
-  return {
-    text: data.text || "",
-    verses: data.verses || [],
-  };
-}
 
 function clean(text) {
   return String(text || "")
@@ -79,6 +51,55 @@ function safeJsonParse(text) {
   }
 
   return JSON.parse(cleaned);
+}
+
+async function getBibleChapter(book, chapter) {
+  const bibleId = process.env.NIV_BIBLE_ID;
+
+  const chapterId = `${book}.${chapter}`;
+
+  const url =
+    `https://api.scripture.api.bible/v1/bibles/` +
+    `${bibleId}/chapters/${encodeURIComponent(
+      chapterId
+    )}?content-type=json`;
+
+  const res = await fetch(url, {
+    headers: {
+      "api-key": process.env.API_BIBLE_KEY,
+    },
+  });
+
+  const data = await res.json();
+
+  if (!data.data) {
+    console.log(data);
+    throw new Error("Failed to fetch NIV chapter");
+  }
+
+  const html = data.data.content || "";
+
+  const verseRegex =
+    /data-number="(\\d+)"[^>]*>(.*?)<\\/span>/g;
+
+  const verses = [];
+
+  let match;
+
+  while ((match = verseRegex.exec(html)) !== null) {
+    verses.push({
+      verse: match[1],
+      text: match[2]
+        .replace(/<[^>]+>/g, "")
+        .replace(/&nbsp;/g, " ")
+        .trim(),
+    });
+  }
+
+  return {
+    text: verses.map((v) => v.text).join(" "),
+    verses,
+  };
 }
 
 function validateQuestions(rawQuestions, count) {
@@ -139,7 +160,7 @@ Create ${count} difficult Bible quiz questions.
 
 Book: ${book}
 Chapter: ${chapter}
-Translation: WEB Bible
+Translation: NIV Bible
 Quiz type selected by host: ${type}
 
 Use ONLY this chapter text:
