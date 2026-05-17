@@ -1,5 +1,8 @@
 require("dotenv").config();
 
+console.log("API_BIBLE_KEY:", process.env.API_BIBLE_KEY);
+console.log("NIV_BIBLE_ID:", process.env.NIV_BIBLE_ID);
+
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
