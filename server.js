@@ -100,6 +100,11 @@ async function getBibleChapter(book, chapter) {
       chapterId
     )}?content-type=json`;
 	
+	console.log("BOOK:", book);
+console.log("CHAPTER:", chapter);
+console.log("BOOK CODE:", BOOK_CODES[book]);
+console.log("URL:", url);
+	
   console.log(url);
 
   const res = await fetch(url, {
@@ -109,6 +114,7 @@ async function getBibleChapter(book, chapter) {
   });
 
   const data = await res.json();
+  console.log(JSON.stringify(data, null, 2));
 
   if (!data.data) {
     console.log(data);
