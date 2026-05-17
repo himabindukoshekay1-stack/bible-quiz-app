@@ -93,7 +93,7 @@ async function getBibleChapter(book, chapter) {
   const bibleId = process.env.NIV_BIBLE_ID;
 
   const chapterId = `${BOOK_CODES[book]}.${chapter}`;
-
+const data = await
   const url =
     `https://api.scripture.api.bible/v1/bibles/` +
     `${bibleId}/chapters/${encodeURIComponent(
@@ -263,8 +263,22 @@ Rules:
   return validateQuestions(parsed, count);
 }
 
-async function generateQuestions(book, chapter, count = 20, type = "mixed") {
-  const bibleData = await getBibleChapter(book, chapter);
+async function getBibleChapter(book, chapter) {
+  const bibleId = process.env.NIV_BIBLE_ID;
+  const apiKey = process.env.API_BIBLE_KEY;
+
+  if (!bibleId) throw new Error("Missing NIV_BIBLE_ID");
+  if (!apiKey) throw new Error("Missing API_BIBLE_KEY");
+
+  // 1. Get all books
+  const booksRes = await fetch(
+    `https://api.scripture.api.bible/v1/bibles/${bibleId}/books`,
+    {
+      headers: {
+        "api-key": apiKey,
+      },
+    }
+  );
 
   return await generateAiQuestions(
     book,
