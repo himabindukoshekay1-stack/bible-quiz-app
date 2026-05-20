@@ -145,18 +145,22 @@ async function generateAiQuestions(
     )
     .join("\n");
 
-  const prompt = `
+ const prompt = `
+You are creating Bible quiz questions in TRUE NIV STYLE wording.
+
+IMPORTANT:
+- Rewrite the WEB Bible verses internally into natural NIV-style English before creating questions.
+- Use modern, clean, conversational NIV wording.
+- Avoid old-fashioned WEB wording.
+- Questions should sound like official NIV Bible study material.
+
 Create ${count} Bible quiz questions.
 
 Book: ${book}
 Chapter: ${chapter}
 
-Use NIV wording and style.
-
 Use ONLY this chapter text:
 ${verseText}
-
-Return ONLY valid JSON array.
 
 Question Types:
 1. Multiple Choice
@@ -167,22 +171,24 @@ Question Types:
 Rules:
 - Multiple choice must have ONLY 3 choices.
 - Choices must be VERY SHORT.
-- Do NOT use full verses as choices.
-- Include Bible references in questions.
-- Make questions simple and mobile friendly.
-- Make wrong choices believable.
+- Include verse references in questions.
+- Make questions mobile friendly.
+- Make wording feel like NIV.
+- Questions should sound natural and modern.
+- Avoid formal WEB language.
+- Wrong answers must be believable.
 - Correct answer must exactly match one choice.
 - Direct questions should not contain choices.
 - Rapid fire questions should be very short.
-- Return only valid JSON.
+- Return ONLY valid JSON array.
 
 JSON format:
 [
   {
     "type": "mcq",
     "question": "What did Jesus calm? (Mark 4:39)",
-    "options": ["Wind", "Fire", "Rain"],
-    "answer": "Wind"
+    "options": ["Storm", "Fire", "Rain"],
+    "answer": "Storm"
   },
   {
     "type": "direct",
@@ -196,7 +202,7 @@ JSON format:
   },
   {
     "type": "rapid",
-    "question": "Who denied Jesus 3 times?",
+    "question": "Who denied Jesus three times?",
     "answer": "Peter"
   }
 ]
