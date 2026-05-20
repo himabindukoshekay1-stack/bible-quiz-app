@@ -1,8 +1,5 @@
 require("dotenv").config();
 
-console.log("API_BIBLE_KEY:", process.env.API_BIBLE_KEY);
-console.log("NIV_BIBLE_ID:", process.env.NIV_BIBLE_ID);
-
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
@@ -14,13 +11,19 @@ const app = express();
 app.use(cors());
 
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+  },
+});
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
 const rooms = {};
+
 const QUESTION_TIME = 30;
 const REVEAL_TIME = 5;
 
@@ -54,107 +57,24 @@ function safeJsonParse(text) {
 }
 
 async function getBibleChapter(book, chapter) {
-  const bibleId = process.env.NIV_BIBLE_ID;
-  const apiKey = process.env.API_BIBLE_KEY;
-  console.log("API KEY EXISTS:", !!apiKey);
-  console.log("API KEY LENGTH:", apiKey ? apiKey.length : 0);
+  const url = `https://bible-api.com/${encodeURIComponent(
+    book + " " + chapter
+  )}?translation=web`;
 
-  if (!bibleId) throw new Error("Missing NIV_BIBLE_ID");
-  if (!apiKey) throw new Error("Missing API_BIBLE_KEY");
+  const res = await fetch(url);
+  const data = await res.json();
 
-  const booksRes = await fetch(
-    `https://api.scripture.api.bible/v1/bibles/${bibleId}/books`,
-    { headers: { "api-key": apiKey } }
-  );
-
-  const booksData = await booksRes.json();
-
-console.log("BOOKS RESPONSE:", JSON.stringify(booksData, null, 2));
-
-if (!booksData.data) {
-  throw new Error("Failed to fetch NIV books");
-}
-
-  const matchedBook = booksData.data.find(
-    (b) =>
-      b.name.toLowerCase() === book.toLowerCase() ||
-      b.nameLong.toLowerCase() === book.toLowerCase()
-  );
-
-  if (!matchedBook) {
-    console.log("BOOK NOT FOUND:", book);
-    console.log("AVAILABLE BOOKS:", booksData.data.map((b) => b.name));
-    throw new Error(`Book not found in NIV API: ${book}`);
-  }
-
-  const chaptersRes = await fetch(
-    `https://api.scripture.api.bible/v1/bibles/${bibleId}/books/${matchedBook.id}/chapters`,
-    { headers: { "api-key": apiKey } }
-  );
-
-  const chaptersData = await chaptersRes.json();
-
-  if (!chaptersData.data) {
-    console.log("CHAPTERS ERROR:", chaptersData);
-    throw new Error("Failed to fetch NIV chapters");
-  }
-
-  const matchedChapter = chaptersData.data.find(
-    (c) => c.number === String(chapter)
-  );
-
-  if (!matchedChapter) {
-    console.log("CHAPTER NOT FOUND:", chapter);
-    console.log("AVAILABLE CHAPTERS:", chaptersData.data);
-    throw new Error(`Chapter not found: ${book} ${chapter}`);
-  }
-
-  const chapterRes = await fetch(
-    `https://api.scripture.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
-    { headers: { "api-key": apiKey } }
-  );
-
-  const chapterData = await chapterRes.json();
-
-  if (!chapterData.data || !chapterData.data.content) {
-    console.log("CHAPTER CONTENT ERROR:", chapterData);
-    throw new Error("Failed to fetch NIV chapter content");
-  }
-
-  const html = chapterData.data.content;
-
-  const verseRegex =
-    /<span[^>]*class="v"[^>]*>(\d+)<\/span>(.*?)(?=<span[^>]*class="v"|$)/g;
-
-  const verses = [];
-  let match;
-
-  while ((match = verseRegex.exec(html)) !== null) {
-    const verseNumber = match[1];
-
-    const verseText = match[2]
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    if (verseText) {
-      verses.push({
-        verse: verseNumber,
-        text: verseText,
-      });
-    }
-  }
-
-  if (verses.length === 0) {
-    console.log("RAW HTML:", html.slice(0, 1000));
-    throw new Error("No verses parsed from NIV chapter");
+  if (!data.verses) {
+    console.log(data);
+    throw new Error("Failed to fetch Bible chapter");
   }
 
   return {
-    text: verses.map((v) => v.text).join(" "),
-    verses,
+    text: data.text,
+    verses: data.verses.map((v) => ({
+      verse: v.verse,
+      text: v.text,
+    })),
   };
 }
 
@@ -179,6 +99,7 @@ function validateQuestions(rawQuestions, count) {
         : [];
 
       const uniqueOptions = [...new Set(options)].slice(0, 4);
+
       const answer = String(q.answer || "").trim();
 
       if (uniqueOptions.length < 4 || !uniqueOptions.includes(answer)) {
@@ -202,11 +123,13 @@ function validateQuestions(rawQuestions, count) {
   return valid.slice(0, count);
 }
 
-async function generateAiQuestions(book, chapter, verses, count = 20, type = "mixed") {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("Missing OPENAI_API_KEY");
-  }
-
+async function generateAiQuestions(
+  book,
+  chapter,
+  verses,
+  count = 20,
+  type = "mixed"
+) {
   const verseText = verses
     .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
     .join("\n");
@@ -216,8 +139,8 @@ Create ${count} difficult Bible quiz questions.
 
 Book: ${book}
 Chapter: ${chapter}
-Translation: NIV Bible
-Quiz type selected by host: ${type}
+
+Use NIV wording and style.
 
 Use ONLY this chapter text:
 ${verseText}
@@ -229,7 +152,12 @@ JSON format:
   {
     "type": "mcq",
     "question": "question text",
-    "options": ["short option A", "short option B", "short option C", "short option D"],
+    "options": [
+      "short option A",
+      "short option B",
+      "short option C",
+      "short option D"
+    ],
     "answer": "exact correct option"
   },
   {
@@ -241,26 +169,24 @@ JSON format:
 
 Rules:
 - Make questions difficult.
-- Do NOT use full verses as multiple-choice options.
-- Multiple-choice options must be short phrases, names, places, actions, meanings, or missing phrases.
-- Wrong answers must be believable and similar.
+- Do NOT use full verses as options.
+- Options must be short.
+- Wrong answers must be believable.
+- Use context, meaning, sequence, people, places, actions.
 - Correct answer must exactly match one option.
-- Use meaning, sequence, speaker, action, location, missing phrase, and context.
-- If type is "mcq" or "ai-mcq", return only mcq questions.
-- If type is "fill", return only fill questions.
-- If type is "mixed", return both mcq and fill questions.
-- If type includes "verse", include verse references in the question text.
-- For "verse-5-each", create open-answer/fill-style questions per verse.
+- If type is "mcq" return only mcq.
+- If type is "fill" return only fill.
+- If type is "mixed" return both.
 `;
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
-    temperature: 0.75,
+    temperature: 0.8,
     messages: [
       {
         role: "system",
         content:
-          "You create accurate, difficult Bible quiz questions. Return only valid JSON.",
+          "You create difficult Bible quiz questions. Return only valid JSON.",
       },
       {
         role: "user",
@@ -270,12 +196,18 @@ Rules:
   });
 
   const text = response.choices[0].message.content || "";
+
   const parsed = safeJsonParse(text);
 
   return validateQuestions(parsed, count);
 }
 
-async function generateQuestions(book, chapter, count = 20, type = "mixed") {
+async function generateQuestions(
+  book,
+  chapter,
+  count = 20,
+  type = "mixed"
+) {
   const bibleData = await getBibleChapter(book, chapter);
 
   return await generateAiQuestions(
@@ -288,7 +220,9 @@ async function generateQuestions(book, chapter, count = 20, type = "mixed") {
 }
 
 function leaderboard(room) {
-  return Object.values(room.players).sort((a, b) => b.score - a.score);
+  return Object.values(room.players).sort(
+    (a, b) => b.score - a.score
+  );
 }
 
 function leaderboardWithStatus(room) {
@@ -316,9 +250,11 @@ function clearRoomTimers(room) {
 
 function sendQuestion(pin) {
   const room = rooms[pin];
+
   if (!room) return;
 
   const q = room.questions[room.currentQuestion];
+
   if (!q) return;
 
   clearRoomTimers(room);
@@ -334,17 +270,20 @@ function sendQuestion(pin) {
     timeLeft: room.timeLeft,
   });
 
-  io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+  io.to(pin).emit(
+    "playersUpdate",
+    leaderboardWithStatus(room)
+  );
 
   room.timer = setInterval(() => {
-    if (room.status !== "question") return;
-
     room.timeLeft--;
+
     io.to(pin).emit("timer", room.timeLeft);
 
     if (room.timeLeft <= 0) {
       clearInterval(room.timer);
       room.timer = null;
+
       reveal(pin);
     }
   }, 1000);
@@ -352,9 +291,11 @@ function sendQuestion(pin) {
 
 function reveal(pin) {
   const room = rooms[pin];
+
   if (!room) return;
 
   const q = room.questions[room.currentQuestion];
+
   if (!q) return;
 
   room.status = "reveal";
@@ -367,7 +308,9 @@ function reveal(pin) {
   room.revealTimeout = setTimeout(() => {
     room.currentQuestion++;
 
-    if (room.currentQuestion >= room.questions.length) {
+    if (
+      room.currentQuestion >= room.questions.length
+    ) {
       room.status = "finished";
 
       io.to(pin).emit("gameOver", {
@@ -398,54 +341,61 @@ io.on("connection", (socket) => {
     };
 
     socket.join(pin);
+
     socket.emit("roomCreated", pin);
   });
 
-  socket.on("setQuiz", async ({ pin, book, chapter, count, type }) => {
-    const room = rooms[pin];
+  socket.on(
+    "setQuiz",
+    async ({ pin, book, chapter, count, type }) => {
+      const room = rooms[pin];
 
-    if (!room) {
-      socket.emit("errorMessage", "Room not found");
-      return;
+      if (!room) {
+        socket.emit("errorMessage", "Room not found");
+        return;
+      }
+
+      try {
+        socket.emit(
+          "errorMessage",
+          "Generating AI questions..."
+        );
+
+        room.questions = await generateQuestions(
+          book,
+          chapter,
+          Number(count) || 20,
+          type || "mixed"
+        );
+
+        room.currentQuestion = 0;
+        room.answers = {};
+        room.status = "loaded";
+
+        io.to(pin).emit("quizSet", {
+          count: room.questions.length,
+        });
+
+        socket.emit(
+          "errorMessage",
+          `Loaded ${room.questions.length} questions`
+        );
+      } catch (e) {
+        console.error(e);
+
+        socket.emit(
+          "errorMessage",
+          e.message || "Failed to generate quiz"
+        );
+      }
     }
-
-    try {
-      socket.emit("errorMessage", "Loading NIV AI quiz questions...");
-
-      clearRoomTimers(room);
-
-      room.questions = await generateQuestions(
-        book,
-        chapter,
-        Number(count) || 20,
-        type || "mixed"
-      );
-
-      room.currentQuestion = 0;
-      room.answers = {};
-      room.status = "loaded";
-
-      io.to(pin).emit("quizSet", {
-        count: room.questions.length,
-      });
-
-      socket.emit("errorMessage", `Loaded ${room.questions.length} questions`);
-    } catch (e) {
-      console.error("Quiz generation failed:", e);
-      socket.emit("errorMessage", e.message || "Failed to load AI quiz");
-    }
-  });
+  );
 
   socket.on("joinRoom", ({ pin, name }) => {
     const room = rooms[pin];
 
     if (!room) {
       socket.emit("errorMessage", "Room not found");
-      return;
-    }
-
-    if (!name) {
-      socket.emit("errorMessage", "Enter your name");
       return;
     }
 
@@ -456,174 +406,112 @@ io.on("connection", (socket) => {
     };
 
     socket.join(pin);
-    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+
+    io.to(pin).emit(
+      "playersUpdate",
+      leaderboardWithStatus(room)
+    );
   });
 
   socket.on("startGame", (pin) => {
     const room = rooms[pin];
 
     if (!room || room.questions.length === 0) {
-      socket.emit("errorMessage", "Load quiz first");
+      socket.emit(
+        "errorMessage",
+        "Load quiz first"
+      );
       return;
     }
 
-    clearRoomTimers(room);
-
     room.currentQuestion = 0;
     room.answers = {};
-    room.status = "started";
 
     sendQuestion(pin);
   });
 
-  socket.on("pauseGame", (pin) => {
-    const room = rooms[pin];
-    if (!room) return;
+  socket.on(
+    "submitAnswer",
+    ({ pin, answer }) => {
+      const room = rooms[pin];
 
-    if (room.timer) {
-      clearInterval(room.timer);
-      room.timer = null;
-    }
+      if (!room) return;
 
-    room.status = "paused";
+      if (room.answers[socket.id]) return;
 
-    io.to(pin).emit("gamePaused", {
-      message: "Game paused by host",
-      timeLeft: room.timeLeft,
-    });
-  });
+      const player = room.players[socket.id];
 
-  socket.on("resumeGame", (pin) => {
-    const room = rooms[pin];
-    if (!room) return;
+      const q =
+        room.questions[room.currentQuestion];
 
-    if (room.status !== "paused") return;
+      if (!player || !q) return;
 
-    room.status = "question";
+      const correct =
+        String(answer).trim().toLowerCase() ===
+        String(q.answer).trim().toLowerCase();
 
-    io.to(pin).emit("gameResumed", {
-      message: "Game resumed",
-      timeLeft: room.timeLeft,
-    });
-
-    room.timer = setInterval(() => {
-      if (room.status !== "question") return;
-
-      room.timeLeft--;
-      io.to(pin).emit("timer", room.timeLeft);
-
-      if (room.timeLeft <= 0) {
-        clearInterval(room.timer);
-        room.timer = null;
-        reveal(pin);
+      if (correct) {
+        player.score +=
+          500 + room.timeLeft * 30;
       }
-    }, 1000);
-  });
 
-  socket.on("stopGame", (pin) => {
-    const room = rooms[pin];
-    if (!room) return;
+      room.answers[socket.id] = {
+        answer,
+        correct,
+      };
 
-    clearRoomTimers(room);
+      socket.emit("answerSubmitted", {
+        correct,
+      });
 
-    room.status = "stopped";
-    room.currentQuestion = 0;
-    room.answers = {};
-
-    io.to(pin).emit("gameStopped", {
-      leaderboard: leaderboardWithStatus(room),
-    });
-  });
-
-  socket.on("replayGame", (pin) => {
-    const room = rooms[pin];
-    if (!room || room.questions.length === 0) return;
-
-    clearRoomTimers(room);
-
-    Object.values(room.players).forEach((player) => {
-      player.score = 0;
-    });
-
-    room.currentQuestion = 0;
-    room.answers = {};
-    room.status = "started";
-
-    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
-    sendQuestion(pin);
-  });
-
-  socket.on("exitGame", (pin) => {
-    const room = rooms[pin];
-    if (!room) return;
-
-    clearRoomTimers(room);
-
-    io.to(pin).emit("gameExited", {
-      message: "Host ended the game",
-    });
-
-    delete rooms[pin];
-  });
-
-  socket.on("submitAnswer", ({ pin, answer }) => {
-    const room = rooms[pin];
-
-    if (!room) return;
-    if (room.status !== "question") return;
-    if (room.answers[socket.id]) return;
-
-    const player = room.players[socket.id];
-    const q = room.questions[room.currentQuestion];
-
-    if (!player || !q) return;
-
-    const userAnswer = String(answer).trim().toLowerCase();
-    const correctAnswer = String(q.answer).trim().toLowerCase();
-
-    const correct =
-      q.type === "fill"
-        ? userAnswer === correctAnswer
-        : String(answer).trim() === String(q.answer).trim();
-
-    if (correct) {
-      player.score += 500 + room.timeLeft * 30;
+      io.to(pin).emit(
+        "playersUpdate",
+        leaderboardWithStatus(room)
+      );
     }
-
-    room.answers[socket.id] = {
-      answer,
-      correct,
-    };
-
-    socket.emit("answerSubmitted", { correct });
-    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
-  });
+  );
 
   socket.on("disconnect", () => {
     for (const pin in rooms) {
       const room = rooms[pin];
+
       if (!room) continue;
 
       delete room.players[socket.id];
 
       if (room.host === socket.id) {
         clearRoomTimers(room);
+
         delete rooms[pin];
       } else {
-        io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+        io.to(pin).emit(
+          "playersUpdate",
+          leaderboardWithStatus(room)
+        );
       }
     }
   });
 });
 
-app.use(express.static(path.join(__dirname, "client", "dist")));
+app.use(
+  express.static(
+    path.join(__dirname, "client", "dist")
+  )
+);
 
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
+  res.sendFile(
+    path.join(
+      __dirname,
+      "client",
+      "dist",
+      "index.html"
+    )
+  );
 });
 
 const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`App running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
