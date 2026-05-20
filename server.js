@@ -67,10 +67,11 @@ async function getBibleChapter(book, chapter) {
 
   const booksData = await booksRes.json();
 
-  if (!booksData.data) {
-    console.log("BOOKS ERROR:", booksData);
-    throw new Error("Failed to fetch NIV books");
-  }
+console.log("BOOKS RESPONSE:", JSON.stringify(booksData, null, 2));
+
+if (!booksData.data) {
+  throw new Error("Failed to fetch NIV books");
+}
 
   const matchedBook = booksData.data.find(
     (b) =>
