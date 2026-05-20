@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const OpenAI = require("openai");
 
 const app = express();
+
 app.use(cors());
 
 const server = http.createServer(app);
@@ -62,6 +63,7 @@ async function getBibleChapter(book, chapter) {
   )}?translation=web`;
 
   const res = await fetch(url);
+
   const data = await res.json();
 
   if (!data.verses) {
@@ -86,9 +88,13 @@ function validateQuestions(rawQuestions, count) {
   const valid = rawQuestions
     .filter((q) => q && typeof q.question === "string")
     .map((q) => {
-      if (q.type === "fill") {
+      if (
+        q.type === "fill" ||
+        q.type === "direct" ||
+        q.type === "rapid"
+      ) {
         return {
-          type: "fill",
+          type: q.type || "direct",
           question: q.question,
           answer: String(q.answer || "").trim(),
         };
@@ -98,11 +104,14 @@ function validateQuestions(rawQuestions, count) {
         ? q.options.map((o) => String(o).trim()).filter(Boolean)
         : [];
 
-      const uniqueOptions = [...new Set(options)].slice(0, 4);
+      const uniqueOptions = [...new Set(options)].slice(0, 3);
 
       const answer = String(q.answer || "").trim();
 
-      if (uniqueOptions.length < 4 || !uniqueOptions.includes(answer)) {
+      if (
+        uniqueOptions.length < 3 ||
+        !uniqueOptions.includes(answer)
+      ) {
         return null;
       }
 
@@ -127,15 +136,17 @@ async function generateAiQuestions(
   book,
   chapter,
   verses,
-  count = 20,
-  type = "mixed"
+  count = 20
 ) {
   const verseText = verses
-    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
+    .map(
+      (v) =>
+        `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
+    )
     .join("\n");
 
   const prompt = `
-Create ${count} difficult Bible quiz questions.
+Create ${count} Bible quiz questions.
 
 Book: ${book}
 Chapter: ${chapter}
@@ -145,57 +156,71 @@ Use NIV wording and style.
 Use ONLY this chapter text:
 ${verseText}
 
-Return ONLY valid JSON array. No markdown. No explanation.
+Return ONLY valid JSON array.
+
+Question Types:
+1. Multiple Choice
+2. Direct Questions
+3. Fill in the Blanks
+4. Rapid Fire Questions
+
+Rules:
+- Multiple choice must have ONLY 3 choices.
+- Choices must be VERY SHORT.
+- Do NOT use full verses as choices.
+- Include Bible references in questions.
+- Make questions simple and mobile friendly.
+- Make wrong choices believable.
+- Correct answer must exactly match one choice.
+- Direct questions should not contain choices.
+- Rapid fire questions should be very short.
+- Return only valid JSON.
 
 JSON format:
 [
   {
     "type": "mcq",
-    "question": "question text",
-    "options": [
-      "short option A",
-      "short option B",
-      "short option C",
-      "short option D"
-    ],
-    "answer": "exact correct option"
+    "question": "What did Jesus calm? (Mark 4:39)",
+    "options": ["Wind", "Fire", "Rain"],
+    "answer": "Wind"
+  },
+  {
+    "type": "direct",
+    "question": "Who built the ark? (Genesis 6)",
+    "answer": "Noah"
   },
   {
     "type": "fill",
-    "question": "fill blank question",
-    "answer": "short correct answer"
+    "question": "Jesus _____. (John 11:35)",
+    "answer": "wept"
+  },
+  {
+    "type": "rapid",
+    "question": "Who denied Jesus 3 times?",
+    "answer": "Peter"
   }
 ]
-
-Rules:
-- Make questions difficult.
-- Do NOT use full verses as options.
-- Options must be short.
-- Wrong answers must be believable.
-- Use context, meaning, sequence, people, places, actions.
-- Correct answer must exactly match one option.
-- If type is "mcq" return only mcq.
-- If type is "fill" return only fill.
-- If type is "mixed" return both.
 `;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.8,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You create difficult Bible quiz questions. Return only valid JSON.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
+  const response =
+    await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      temperature: 0.8,
+      messages: [
+        {
+          role: "system",
+          content:
+            "You create Bible quiz questions. Return only valid JSON.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+    });
 
-  const text = response.choices[0].message.content || "";
+  const text =
+    response.choices[0].message.content || "";
 
   const parsed = safeJsonParse(text);
 
@@ -205,17 +230,18 @@ Rules:
 async function generateQuestions(
   book,
   chapter,
-  count = 20,
-  type = "mixed"
+  count = 20
 ) {
-  const bibleData = await getBibleChapter(book, chapter);
+  const bibleData = await getBibleChapter(
+    book,
+    chapter
+  );
 
   return await generateAiQuestions(
     book,
     chapter,
     bibleData.verses,
-    Number(count) || 20,
-    type || "mixed"
+    Number(count) || 20
   );
 }
 
@@ -261,7 +287,6 @@ function sendQuestion(pin) {
 
   room.answers = {};
   room.timeLeft = QUESTION_TIME;
-  room.status = "question";
 
   io.to(pin).emit("question", {
     number: room.currentQuestion + 1,
@@ -282,7 +307,6 @@ function sendQuestion(pin) {
 
     if (room.timeLeft <= 0) {
       clearInterval(room.timer);
-      room.timer = null;
 
       reveal(pin);
     }
@@ -296,10 +320,6 @@ function reveal(pin) {
 
   const q = room.questions[room.currentQuestion];
 
-  if (!q) return;
-
-  room.status = "reveal";
-
   io.to(pin).emit("revealAnswer", {
     correctAnswer: q.answer,
     leaderboard: leaderboardWithStatus(room),
@@ -311,8 +331,6 @@ function reveal(pin) {
     if (
       room.currentQuestion >= room.questions.length
     ) {
-      room.status = "finished";
-
       io.to(pin).emit("gameOver", {
         leaderboard: leaderboardWithStatus(room),
       });
@@ -337,7 +355,6 @@ io.on("connection", (socket) => {
       timer: null,
       revealTimeout: null,
       timeLeft: QUESTION_TIME,
-      status: "lobby",
     };
 
     socket.join(pin);
@@ -347,7 +364,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "setQuiz",
-    async ({ pin, book, chapter, count, type }) => {
+    async ({ pin, book, chapter, count }) => {
       const room = rooms[pin];
 
       if (!room) {
@@ -358,19 +375,17 @@ io.on("connection", (socket) => {
       try {
         socket.emit(
           "errorMessage",
-          "Generating AI questions..."
+          "Generating questions..."
         );
 
         room.questions = await generateQuestions(
           book,
           chapter,
-          Number(count) || 20,
-          type || "mixed"
+          Number(count) || 20
         );
 
         room.currentQuestion = 0;
         room.answers = {};
-        room.status = "loaded";
 
         io.to(pin).emit("quizSet", {
           count: room.questions.length,
