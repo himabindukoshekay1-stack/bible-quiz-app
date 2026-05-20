@@ -169,18 +169,19 @@ Question Types:
 4. Rapid Fire Questions
 
 Rules:
-- Multiple choice must have ONLY 3 choices.
-- Choices must be VERY SHORT.
+- Multiple choice must have ONLY 4 choices.
+- Choices must be VERY SHORT and LONG.
 - Include verse references in questions.
 - Make questions mobile friendly.
 - Make wording feel like NIV.
-- Questions should sound natural and modern.
+- Questions should be from NIV like bible verse only.
 - Avoid formal WEB language.
 - Wrong answers must be believable.
 - Correct answer must exactly match one choice.
 - Direct questions should not contain choices.
 - Rapid fire questions should be very short.
 - Return ONLY valid JSON array.
+- Fill in the blanks should be the complete verse and then the blank.
 
 JSON format:
 [
