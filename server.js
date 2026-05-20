@@ -56,6 +56,8 @@ function safeJsonParse(text) {
 async function getBibleChapter(book, chapter) {
   const bibleId = process.env.NIV_BIBLE_ID;
   const apiKey = process.env.API_BIBLE_KEY;
+  console.log("API KEY EXISTS:", !!apiKey);
+  console.log("API KEY LENGTH:", apiKey ? apiKey.length : 0);
 
   if (!bibleId) throw new Error("Missing NIV_BIBLE_ID");
   if (!apiKey) throw new Error("Missing API_BIBLE_KEY");
