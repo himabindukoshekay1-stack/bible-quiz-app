@@ -132,30 +132,40 @@ async function getBibleChapter(book, chapter) {
 
   const html = chapterData.data.content;
 
-  const verseRegex =
-    /<span[^>]*class="v"[^>]*>(\d+)<\/span>(.*?)(?=<span[^>]*class="v"|$)/g;
+const verses = [];
 
-  const verses = [];
+const cleanedHtml = html
+  .replace(/\n/g, " ")
+  .replace(/\r/g, " ");
 
-  let match;
+const parts = cleanedHtml.split(
+  /<span class="v" data-number="\d+"/
+);
 
-  while ((match = verseRegex.exec(html)) !== null) {
-    const verseNumber = match[1];
+parts.shift();
 
-    const verseText = match[2]
-      .replace(/<[^>]+>/g, " ")
-      .replace(/&nbsp;/g, " ")
-      .replace(/&amp;/g, "&")
-      .replace(/\s+/g, " ")
-      .trim();
+for (const part of parts) {
+  const numberMatch = part.match(/>(\d+)<\/span>/);
 
-    if (verseText) {
-      verses.push({
-        verse: verseNumber,
-        text: verseText,
-      });
-    }
+  if (!numberMatch) continue;
+
+  const verseNumber = numberMatch[1];
+
+  const verseContent = part
+    .replace(/.*?<\/span>/, "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (verseContent) {
+    verses.push({
+      verse: verseNumber,
+      text: verseContent,
+    });
   }
+}
 
   if (verses.length === 0) {
     throw new Error("No NIV verses parsed");
