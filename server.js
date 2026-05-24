@@ -241,7 +241,14 @@ Create ${count} Bible quiz questions.
 Book: ${book}
 Chapter: ${chapter}
 
-Use REAL NIV wording and style.
+IMPORTANT:
+- NEVER paraphrase verses.
+- NEVER rewrite verses.
+- NEVER summarize verses.
+- Use the EXACT NIV wording from the supplied verses.
+- Fill in the blanks must come directly from the original verse text.
+- Direct questions must use exact NIV phrasing.
+- Preserve punctuation and wording exactly as given.
 
 Use ONLY this chapter text:
 ${verseText}
@@ -254,13 +261,19 @@ Question Types:
 
 Rules:
 - Multiple choice should have ONLY 4 choices.
-- Choices must be ONE or TWO words only.
+- Multiple choice answers must match the actual NIV verse context.
+- Choices can be full phrases or sentences if needed.
+- Do NOT shorten answers unnaturally.
+- Wrong answers should sound believable
 - Do NOT use long sentences.
 - Include Bible references in questions.
 - Make the questions very hard to guess
 - Questions asking "Who", "What", "Why", "According to" should be type-answer questions.
 - Direct/fill/rapid questions should let users TYPE answers.
-- Fill in the blank questions should hide 2 or 3 important words inside the COMPLETE verse.
+- Fill in the blank questions must use the EXACT FULL NIV verse text.
+- Remove ONLY 2 or 3 words from the ORIGINAL verse.
+- Do NOT change any wording.
+- Do NOT rephrase verses.
 - Keep remaining verse visible.
 - Use underscores for missing words.
 - Make questions mobile friendly.
@@ -280,10 +293,10 @@ JSON format:
     "answer": "Whoever denies that Jesus is the Christ"
   },
   {
-    "type": "fill",
-    "question": "For God so loved the _____ that he gave his one and only _____. (John 3:16)",
-    "answer": "world, Son"
-  },
+  "type": "fill",
+  "question": "The Son is the _____ of the invisible God, the firstborn over all _____. (Colossians 1:15)",
+  "answer": "image, creation"
+},
   {
     "type": "rapid",
     "question": "Who denied Jesus three times?",
