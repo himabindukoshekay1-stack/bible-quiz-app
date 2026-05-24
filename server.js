@@ -260,22 +260,26 @@ Rules:
 - Choices must be VERY SHORT and LONG.
 - Include verse references in questions.
 - Make questions mobile friendly.
-- Make wording feel like NIV.
-- Questions should be from NIV like bible verse only.
-- Avoid formal WEB language.
-- Wrong answers must be believable.
-- Correct answer must exactly match one choice.
-- Direct questions should not contain choices.
-- Rapid fire questions should be very short.
-- Return ONLY valid JSON array.
-- Fill in the blanks should be the complete verse and then the blank.
+- Mix these question types:
+  1. mcq
+  2. fill
+  3. direct
+  4. rapid
+- For direct/fill/rapid questions, players must TYPE answers.
+- Keep questions short and mobile friendly.
+- Return only valid JSON.
+- Fill in the blank questions should hide 2 or 3 important words inside the COMPLETE verse.
+- Keep the remaining verse visible.
+- Use underscores for missing words.
+- Missing words should be meaningful keywords, names, places, or actions.
+- Include the Bible reference at the end.
 
 JSON format:
 [
   {
     "type": "mcq",
     "question": "What did Jesus calm? (Mark 4:39)",
-    "options": ["Storm", "Fire", "Rain"],
+    "options": ["Storm", "Fire", "Rain", "Snow"],
     "answer": "Storm"
   },
   {
@@ -283,11 +287,19 @@ JSON format:
     "question": "Who built the ark? (Genesis 6)",
     "answer": "Noah"
   },
-  {
-    "type": "fill",
-    "question": "Jesus _____. (John 11:35)",
-    "answer": "wept"
-  },
+
+{
+  "type": "fill",
+  "question": "For God so loved the _____ that he gave his one and only _____, that whoever believes in him shall not perish but have eternal life. (John 3:16)",
+  "answer": "world, Son"
+}
+
+
+{
+  "type": "fill",
+  "question": "The Lord is my _____, I lack _____. (Psalm 23:1)",
+  "answer": "shepherd, nothing"
+},
   {
     "type": "rapid",
     "question": "Who denied Jesus three times?",
