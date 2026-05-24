@@ -8,15 +8,12 @@ const { Server } = require("socket.io");
 const OpenAI = require("openai");
 
 const app = express();
-
 app.use(cors());
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
+  cors: { origin: "*" },
 });
 
 const openai = new OpenAI({
@@ -61,6 +58,9 @@ async function getBibleChapter(book, chapter) {
   const bibleId = process.env.NIV_BIBLE_ID;
   const apiKey = process.env.API_BIBLE_KEY;
 
+  if (!bibleId) throw new Error("Missing NIV_BIBLE_ID");
+  if (!apiKey) throw new Error("Missing API_BIBLE_KEY");
+
   const booksRes = await fetch(
     `https://rest.api.bible/v1/bibles/${bibleId}/books`,
     {
@@ -74,7 +74,7 @@ async function getBibleChapter(book, chapter) {
   const booksData = await booksRes.json();
 
   if (!booksData.data) {
-    console.log(booksData);
+    console.log("BOOKS ERROR:", booksData);
     throw new Error("Failed to fetch NIV books");
   }
 
@@ -101,7 +101,7 @@ async function getBibleChapter(book, chapter) {
   const chaptersData = await chaptersRes.json();
 
   if (!chaptersData.data) {
-    console.log(chaptersData);
+    console.log("CHAPTERS ERROR:", chaptersData);
     throw new Error("Failed to fetch chapters");
   }
 
@@ -113,66 +113,55 @@ async function getBibleChapter(book, chapter) {
     throw new Error(`Chapter not found: ${chapter}`);
   }
 
-const chapterRes = await fetch(
-  `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
-  {
-    headers: {
-      "api-key": apiKey,
-      "Content-Type": "text/plain",
-    },
-  }
-);
+  const chapterRes = await fetch(
+    `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
+    {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "text/plain",
+      },
+    }
+  );
 
   const chapterData = await chapterRes.json();
 
-  if (!chapterData.data) {
-    console.log(chapterData);
+  if (!chapterData.data || !chapterData.data.content) {
+    console.log("CHAPTER ERROR:", chapterData);
     throw new Error("Failed to fetch NIV chapter");
   }
 
-  const html = chapterData.data.content;
+  const content = chapterData.data.content;
 
-const verses = [];
+  const lines = content
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
-const cleanedHtml = html
-  .replace(/\n/g, " ")
-  .replace(/\r/g, " ");
+  const verses = [];
 
-const content = chapterData.data.content;
+  for (const line of lines) {
+    const match = line.match(/^(\d+)\s+(.*)$/);
 
-if (!content) {
-  throw new Error("No NIV content returned");
+    if (!match) continue;
+
+    verses.push({
+      verse: match[1],
+      text: match[2].trim(),
+    });
+  }
+
+  if (verses.length === 0) {
+    verses.push({
+      verse: "1",
+      text: content,
+    });
+  }
+
+  return {
+    text: verses.map((v) => v.text).join(" "),
+    verses,
+  };
 }
-
-const lines = content
-  .split("\n")
-  .map((line) => line.trim())
-  .filter(Boolean);
-
-const verses = [];
-
-for (const line of lines) {
-  const match = line.match(/^(\d+)\s+(.*)$/);
-
-  if (!match) continue;
-
-  verses.push({
-    verse: match[1],
-    text: match[2].trim(),
-  });
-}
-
-if (verses.length === 0) {
-  verses.push({
-    verse: "1",
-    text: content,
-  });
-}
-
-return {
-  text: verses.map((v) => v.text).join(" "),
-  verses,
-};
 
 function validateQuestions(rawQuestions, count) {
   if (!Array.isArray(rawQuestions)) {
@@ -199,13 +188,9 @@ function validateQuestions(rawQuestions, count) {
         : [];
 
       const uniqueOptions = [...new Set(options)].slice(0, 4);
-
       const answer = String(q.answer || "").trim();
 
-      if (
-        uniqueOptions.length < 2 ||
-        !uniqueOptions.includes(answer)
-      ) {	
+      if (uniqueOptions.length < 4 || !uniqueOptions.includes(answer)) {
         return null;
       }
 
@@ -234,10 +219,7 @@ async function generateAiQuestions(
   type = "mcq"
 ) {
   const verseText = verses
-    .map(
-      (v) =>
-        `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
-    )
+    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
     .join("\n");
 
   const prompt = `
@@ -249,31 +231,21 @@ Book: ${book}
 Chapter: ${chapter}
 
 IMPORTANT:
+- Use the EXACT NIV verse text supplied below.
 - NEVER paraphrase verses.
 - NEVER rewrite verses.
 - NEVER summarize verses.
-- Use the EXACT NIV wording from the supplied verses.
-- Fill in the blanks must come directly from the original verse text.
-- Direct questions must use exact NIV phrasing.
-- Preserve punctuation and wording exactly as given.
-
-Use ONLY this chapter text:
-${verseText}
-
-Question Types:
-1. Multiple Choice
-2. Direct Questions
-3. Fill in the Blanks
-4. Rapid Fire Questions
-
-Rules:
+- Fill in the blank questions must use the EXACT FULL NIV verse text.
+- Remove ONLY 2 or 3 important words from the ORIGINAL verse.
+- Multiple choice answers must match the actual NIV verse context.
+- Choices can be full phrases if needed.
+- Do NOT shorten answers unnaturally.
 - Multiple choice should have ONLY 4 choices.
 - Multiple choice answers must match the actual NIV verse context.
 - Choices can be full phrases or sentences if needed.
 - Do NOT shorten answers unnaturally.
 - Wrong answers should sound believable
 - Do NOT use long sentences.
-- Include Bible references in questions.
 - Make the questions very hard to guess
 - Questions asking "Who", "What", "Why", "According to" should be type-answer questions.
 - Direct/fill/rapid questions should let users TYPE answers.
@@ -284,6 +256,23 @@ Rules:
 - Keep remaining verse visible.
 - Use underscores for missing words.
 - Make questions mobile friendly.
+
+Use ONLY this chapter text:
+${verseText}
+
+Question Types:
+1. mcq = Multiple Choice
+2. direct = Direct Questions
+3. fill = Fill in the Blanks
+4. rapid = Rapid Fire Questions
+
+Rules:
+- Multiple choice must have EXACTLY 4 choices.
+- Only one correct answer.
+- Include Bible references in questions.
+- Direct, fill, and rapid questions should let users TYPE answers.
+- Fill blanks should hide 2 or 3 meaningful words inside the complete verse.
+- Use underscores for blanks.
 - Return ONLY valid JSON array.
 
 JSON format:
@@ -291,7 +280,7 @@ JSON format:
   {
     "type": "mcq",
     "question": "Who built the ark? (Genesis 6)",
-    "options": ["Noah", "Moses", "Peter","John"],
+    "options": ["Noah", "Moses", "Peter", "Abraham"],
     "answer": "Noah"
   },
   {
@@ -300,10 +289,10 @@ JSON format:
     "answer": "Whoever denies that Jesus is the Christ"
   },
   {
-  "type": "fill",
-  "question": "The Son is the _____ of the invisible God, the firstborn over all _____. (Colossians 1:15)",
-  "answer": "image, creation"
-},
+    "type": "fill",
+    "question": "The Son is the _____ of the invisible God, the firstborn over all _____. (Colossians 1:15)",
+    "answer": "image, creation"
+  },
   {
     "type": "rapid",
     "question": "Who denied Jesus three times?",
@@ -312,41 +301,30 @@ JSON format:
 ]
 `;
 
-  const response =
-    await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      temperature: 0.8,
-      messages: [
-        {
-          role: "system",
-          content:
-            "You create Bible quiz questions. Return only valid JSON.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-    });
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    temperature: 0.4,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You create accurate Bible quiz questions from supplied NIV text only. Return only valid JSON.",
+      },
+      {
+        role: "user",
+        content: prompt,
+      },
+    ],
+  });
 
-  const text =
-    response.choices[0].message.content || "";
-
+  const text = response.choices[0].message.content || "";
   const parsed = safeJsonParse(text);
 
   return validateQuestions(parsed, count);
 }
 
-async function generateQuestions(
-  book,
-  chapter,
-  count = 20,
-  type = "mcq"
-) {
-  const bibleData = await getBibleChapter(
-    book,
-    chapter
-  );
+async function generateQuestions(book, chapter, count = 20, type = "mcq") {
+  const bibleData = await getBibleChapter(book, chapter);
 
   return await generateAiQuestions(
     book,
@@ -358,9 +336,7 @@ async function generateQuestions(
 }
 
 function leaderboard(room) {
-  return Object.values(room.players).sort(
-    (a, b) => b.score - a.score
-  );
+  return Object.values(room.players).sort((a, b) => b.score - a.score);
 }
 
 function leaderboardWithStatus(room) {
@@ -388,11 +364,9 @@ function clearRoomTimers(room) {
 
 function sendQuestion(pin) {
   const room = rooms[pin];
-
   if (!room) return;
 
   const q = room.questions[room.currentQuestion];
-
   if (!q) return;
 
   clearRoomTimers(room);
@@ -408,10 +382,7 @@ function sendQuestion(pin) {
     timeLeft: room.timeLeft,
   });
 
-  io.to(pin).emit(
-    "playersUpdate",
-    leaderboardWithStatus(room)
-  );
+  io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
 
   room.timer = setInterval(() => {
     if (room.paused) return;
@@ -423,7 +394,6 @@ function sendQuestion(pin) {
     if (room.timeLeft <= 0) {
       clearInterval(room.timer);
       room.timer = null;
-
       reveal(pin);
     }
   }, 1000);
@@ -431,10 +401,10 @@ function sendQuestion(pin) {
 
 function reveal(pin) {
   const room = rooms[pin];
-
   if (!room) return;
 
   const q = room.questions[room.currentQuestion];
+  if (!q) return;
 
   io.to(pin).emit("revealAnswer", {
     correctAnswer: q.answer,
@@ -444,13 +414,10 @@ function reveal(pin) {
   room.revealTimeout = setTimeout(() => {
     room.currentQuestion++;
 
-    if (
-      room.currentQuestion >= room.questions.length
-    ) {
+    if (room.currentQuestion >= room.questions.length) {
       io.to(pin).emit("gameOver", {
         leaderboard: leaderboardWithStatus(room),
       });
-
       return;
     }
 
@@ -475,54 +442,40 @@ io.on("connection", (socket) => {
     };
 
     socket.join(pin);
-
     socket.emit("roomCreated", pin);
   });
 
-  socket.on(
-    "setQuiz",
-    async ({ pin, book, chapter, count, type }) => {
-      const room = rooms[pin];
+  socket.on("setQuiz", async ({ pin, book, chapter, count, type }) => {
+    const room = rooms[pin];
 
-      if (!room) {
-        socket.emit("errorMessage", "Room not found");
-        return;
-      }
-
-      try {
-        socket.emit(
-          "errorMessage",
-          "Generating NIV questions..."
-        );
-
-        room.questions = await generateQuestions(
-          book,
-          chapter,
-          Number(count) || 20,
-          type || "mcq"
-        );
-
-        room.currentQuestion = 0;
-        room.answers = {};
-
-        io.to(pin).emit("quizSet", {
-          count: room.questions.length,
-        });
-
-        socket.emit(
-          "errorMessage",
-          `Loaded ${room.questions.length} questions`
-        );
-      } catch (e) {
-        console.error(e);
-
-        socket.emit(
-          "errorMessage",
-          e.message || "Failed to generate quiz"
-        );
-      }
+    if (!room) {
+      socket.emit("errorMessage", "Room not found");
+      return;
     }
-  );
+
+    try {
+      socket.emit("errorMessage", "Generating NIV questions...");
+
+      room.questions = await generateQuestions(
+        book,
+        chapter,
+        Number(count) || 20,
+        type || "mcq"
+      );
+
+      room.currentQuestion = 0;
+      room.answers = {};
+
+      io.to(pin).emit("quizSet", {
+        count: room.questions.length,
+      });
+
+      socket.emit("errorMessage", `Loaded ${room.questions.length} questions`);
+    } catch (e) {
+      console.error(e);
+      socket.emit("errorMessage", e.message || "Failed to generate quiz");
+    }
+  });
 
   socket.on("joinRoom", ({ pin, name }) => {
     const room = rooms[pin];
@@ -539,33 +492,24 @@ io.on("connection", (socket) => {
     };
 
     socket.join(pin);
-
-    io.to(pin).emit(
-      "playersUpdate",
-      leaderboardWithStatus(room)
-    );
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
   });
 
   socket.on("startGame", (pin) => {
     const room = rooms[pin];
 
     if (!room || room.questions.length === 0) {
-      socket.emit(
-        "errorMessage",
-        "Load quiz first"
-      );
+      socket.emit("errorMessage", "Load quiz first");
       return;
     }
 
     room.currentQuestion = 0;
     room.answers = {};
-
     sendQuestion(pin);
   });
 
   socket.on("pauseGame", (pin) => {
     const room = rooms[pin];
-
     if (!room) return;
 
     room.paused = true;
@@ -580,7 +524,6 @@ io.on("connection", (socket) => {
 
   socket.on("resumeGame", (pin) => {
     const room = rooms[pin];
-
     if (!room) return;
 
     room.paused = false;
@@ -597,64 +540,85 @@ io.on("connection", (socket) => {
       if (room.timeLeft <= 0) {
         clearInterval(room.timer);
         room.timer = null;
-
         reveal(pin);
       }
     }, 1000);
   });
 
-  socket.on("exitGame", (pin) => {
+  socket.on("stopGame", (pin) => {
     const room = rooms[pin];
-
     if (!room) return;
 
     clearRoomTimers(room);
 
-    io.to(pin).emit("gameExited");
+    room.currentQuestion = 0;
+    room.answers = {};
+    room.paused = false;
+
+    io.to(pin).emit("gameStopped", {
+      leaderboard: leaderboardWithStatus(room),
+    });
+  });
+
+  socket.on("replayGame", (pin) => {
+    const room = rooms[pin];
+    if (!room || room.questions.length === 0) return;
+
+    clearRoomTimers(room);
+
+    Object.values(room.players).forEach((player) => {
+      player.score = 0;
+    });
+
+    room.currentQuestion = 0;
+    room.answers = {};
+    room.paused = false;
+
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+    sendQuestion(pin);
+  });
+
+  socket.on("exitGame", (pin) => {
+    const room = rooms[pin];
+    if (!room) return;
+
+    clearRoomTimers(room);
+
+    io.to(pin).emit("gameExited", {
+      message: "Host ended the game",
+    });
 
     delete rooms[pin];
   });
 
-  socket.on(
-    "submitAnswer",
-    ({ pin, answer }) => {
-      const room = rooms[pin];
+  socket.on("submitAnswer", ({ pin, answer }) => {
+    const room = rooms[pin];
 
-      if (!room) return;
+    if (!room) return;
+    if (room.paused) return;
+    if (room.answers[socket.id]) return;
 
-      if (room.answers[socket.id]) return;
+    const player = room.players[socket.id];
+    const q = room.questions[room.currentQuestion];
 
-      const player = room.players[socket.id];
+    if (!player || !q) return;
 
-      const q =
-        room.questions[room.currentQuestion];
+    const correct =
+      String(answer).trim().toLowerCase() ===
+      String(q.answer).trim().toLowerCase();
 
-      if (!player || !q) return;
-
-      const correct =
-        String(answer).trim().toLowerCase() ===
-        String(q.answer).trim().toLowerCase();
-
-      if (correct) {
-        player.score +=
-          500 + room.timeLeft * 30;
-      }
-
-      room.answers[socket.id] = {
-        answer,
-        correct,
-      };
-
-      socket.emit("answerSubmitted", {
-        correct,
-      });
-
-      io.to(pin).emit(
-        "playersUpdate",
-        leaderboardWithStatus(room)
-      );
+    if (correct) {
+      player.score += 500 + room.timeLeft * 30;
     }
-  );
+
+    room.answers[socket.id] = {
+      answer,
+      correct,
+    };
+
+    socket.emit("answerSubmitted", { correct });
+    io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
+  });
 
   socket.on("disconnect", () => {
     for (const pin in rooms) {
@@ -666,33 +630,18 @@ io.on("connection", (socket) => {
 
       if (room.host === socket.id) {
         clearRoomTimers(room);
-
         delete rooms[pin];
       } else {
-        io.to(pin).emit(
-          "playersUpdate",
-          leaderboardWithStatus(room)
-        );
+        io.to(pin).emit("playersUpdate", leaderboardWithStatus(room));
       }
     }
   });
 });
 
-app.use(
-  express.static(
-    path.join(__dirname, "client", "dist")
-  )
-);
+app.use(express.static(path.join(__dirname, "client", "dist")));
 
 app.get(/.*/, (req, res) => {
-  res.sendFile(
-    path.join(
-      __dirname,
-      "client",
-      "dist",
-      "index.html"
-    )
-  );
+  res.sendFile(path.join(__dirname, "client", "dist", "index.html"));
 });
 
 const PORT = process.env.PORT || 4000;
