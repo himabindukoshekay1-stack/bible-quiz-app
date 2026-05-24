@@ -211,78 +211,64 @@ function validateQuestions(rawQuestions, count) {
   return valid.slice(0, count);
 }
 
-async function generateAiQuestions(
-  book,
-  chapter,
-  verses,
-  count = 20,
-  type = "mcq"
-) {
-  const verseText = verses
-    .map((v) => `${book} ${chapter}:${v.verse} - ${clean(v.text)}`)
-    .join("\n");
-
-  const prompt = `
-Generate ONLY ${type} questions.
-
-Create ${count} Bible quiz questions.
+const prompt = `
+You are a Bible quiz teacher creating verse-by-verse NIV Bible study questions.
 
 Book: ${book}
 Chapter: ${chapter}
 
-IMPORTANT:
-- Use the EXACT NIV verse text supplied below.
-- NEVER paraphrase verses.
-- NEVER rewrite verses.
-- NEVER summarize verses.
-- Fill in the blank questions must use the EXACT FULL NIV verse text.
-- Remove ONLY 2 or 3 important words from the ORIGINAL verse.
-- Multiple choice answers must match the actual NIV verse context.
-- Choices can be full phrases if needed.
-- Do NOT shorten answers unnaturally.
-- Multiple choice should have ONLY 4 choices.
-- Multiple choice answers must match the actual NIV verse context.
-- Choices can be full phrases or sentences if needed.
-- Do NOT shorten answers unnaturally.
-- Wrong answers should sound believable
-- Do NOT use long sentences.
-- Make the questions very hard to guess
-- Questions asking "Who", "What", "Why", "According to" should be type-answer questions.
-- Direct/fill/rapid questions should let users TYPE answers.
-- Fill in the blank questions must use the EXACT FULL NIV verse text.
-- Remove ONLY 2 or 3 words from the ORIGINAL verse.
-- Do NOT change any wording.
-- Do NOT rephrase verses.
-- Keep remaining verse visible.
-- Use underscores for missing words.
-- Make questions mobile friendly.
+Use ONLY the NIV verses supplied below.
 
-Use ONLY this chapter text:
+IMPORTANT RULES:
+- NEVER paraphrase scripture.
+- NEVER rewrite scripture.
+- NEVER summarize verses.
+- Use the EXACT NIV wording from the supplied text.
+- Questions must sound like real Bible-study questions.
+- Questions should follow verse-by-verse order.
+- Questions should focus on understanding scripture.
+- Answers must come directly from the verse text.
+- Keep questions short and clear.
+- Include references when possible.
+
+QUESTION TYPES:
+1. mcq
+2. direct
+3. fill
+4. rapid
+
+RULES FOR MCQ:
+- EXACTLY 4 choices.
+- Only 1 correct answer.
+- Wrong answers should sound believable.
+- Choices may be phrases or sentences from scripture.
+- Do NOT shorten answers unnaturally.
+
+RULES FOR DIRECT QUESTIONS:
+- Use questions like:
+  - Who...
+  - What...
+  - Why...
+  - According to...
+- Users should TYPE answers.
+
+RULES FOR FILL IN THE BLANKS:
+- Use the COMPLETE NIV verse.
+- Remove ONLY 2 or 3 important words.
+- Use underscores for blanks.
+- Keep all original wording unchanged.
+
+RULES FOR RAPID FIRE:
+- Very short scripture-based questions.
+- Short direct answers.
+
+Use ONLY these NIV verses:
 ${verseText}
 
-Question Types:
-1. mcq = Multiple Choice
-2. direct = Direct Questions
-3. fill = Fill in the Blanks
-4. rapid = Rapid Fire Questions
+Return ONLY valid JSON array.
 
-Rules:
-- Multiple choice must have EXACTLY 4 choices.
-- Only one correct answer.
-- Include Bible references in questions.
-- Direct, fill, and rapid questions should let users TYPE answers.
-- Fill blanks should hide 2 or 3 meaningful words inside the complete verse.
-- Use underscores for blanks.
-- Return ONLY valid JSON array.
-
-JSON format:
+Example:
 [
-  {
-    "type": "mcq",
-    "question": "Who built the ark? (Genesis 6)",
-    "options": ["Noah", "Moses", "Peter", "Abraham"],
-    "answer": "Noah"
-  },
   {
     "type": "direct",
     "question": "Who is the liar according to 1 John 2:22?",
@@ -294,34 +280,18 @@ JSON format:
     "answer": "image, creation"
   },
   {
-    "type": "rapid",
-    "question": "Who denied Jesus three times?",
-    "answer": "Peter"
+    "type": "mcq",
+    "question": "Why did John write these things to believers? (1 John 2:1)",
+    "options": [
+      "So that they would not sin",
+      "So they would become rich",
+      "So they would travel",
+      "So they would rule nations"
+    ],
+    "answer": "So that they would not sin"
   }
 ]
 `;
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0.4,
-    messages: [
-      {
-        role: "system",
-        content:
-          "You create accurate Bible quiz questions from supplied NIV text only. Return only valid JSON.",
-      },
-      {
-        role: "user",
-        content: prompt,
-      },
-    ],
-  });
-
-  const text = response.choices[0].message.content || "";
-  const parsed = safeJsonParse(text);
-
-  return validateQuestions(parsed, count);
-}
 
 async function generateQuestions(book, chapter, count = 20, type = "mcq") {
   const bibleData = await getBibleChapter(book, chapter);
