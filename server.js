@@ -181,7 +181,7 @@ function validateQuestions(rawQuestions, count) {
         q.type === "rapid"
       ) {
         return {
-          type: q.type || "direct",
+          type: q.type,
           question: q.question,
           answer: String(q.answer || "").trim(),
         };
@@ -196,7 +196,7 @@ function validateQuestions(rawQuestions, count) {
       const answer = String(q.answer || "").trim();
 
       if (
-        uniqueOptions.length < 3 ||
+        uniqueOptions.length < 2 ||
         !uniqueOptions.includes(answer)
       ) {
         return null;
@@ -223,7 +223,8 @@ async function generateAiQuestions(
   book,
   chapter,
   verses,
-  count = 20
+  count = 20,
+  type = "mcq"
 ) {
   const verseText = verses
     .map(
@@ -232,19 +233,15 @@ async function generateAiQuestions(
     )
     .join("\n");
 
- const prompt = `
-You are creating Bible quiz questions in TRUE NIV STYLE wording.
-
-IMPORTANT:
-- Rewrite the WEB Bible verses internally into natural NIV-style English before creating questions.
-- Use modern, clean, conversational NIV wording.
-- Avoid old-fashioned WEB wording.
-- Questions should sound like official NIV Bible study material.
+  const prompt = `
+Generate ONLY ${type} questions.
 
 Create ${count} Bible quiz questions.
 
 Book: ${book}
 Chapter: ${chapter}
+
+Use REAL NIV wording and style.
 
 Use ONLY this chapter text:
 ${verseText}
@@ -256,50 +253,37 @@ Question Types:
 4. Rapid Fire Questions
 
 Rules:
-- Multiple choice must have ONLY 4 choices.
-- Choices must be VERY SHORT and LONG.
-- Include verse references in questions.
-- Make questions mobile friendly.
-- Mix these question types:
-  1. mcq
-  2. fill
-  3. direct
-  4. rapid
-- For direct/fill/rapid questions, players must TYPE answers.
-- Keep questions short and mobile friendly.
-- Return only valid JSON.
+- Multiple choice should have ONLY 4 choices.
+- Choices must be ONE or TWO words only.
+- Do NOT use long sentences.
+- Include Bible references in questions.
+- Make the questions very hard to guess
+- Questions asking "Who", "What", "Why", "According to" should be type-answer questions.
+- Direct/fill/rapid questions should let users TYPE answers.
 - Fill in the blank questions should hide 2 or 3 important words inside the COMPLETE verse.
-- Keep the remaining verse visible.
+- Keep remaining verse visible.
 - Use underscores for missing words.
-- Missing words should be meaningful keywords, names, places, or actions.
-- Include the Bible reference at the end.
+- Make questions mobile friendly.
+- Return ONLY valid JSON array.
 
 JSON format:
 [
   {
     "type": "mcq",
-    "question": "What did Jesus calm? (Mark 4:39)",
-    "options": ["Storm", "Fire", "Rain", "Snow"],
-    "answer": "Storm"
+    "question": "Who built the ark? (Genesis 6)",
+    "options": ["Noah", "Moses", "Peter","John"],
+    "answer": "Noah"
   },
   {
     "type": "direct",
-    "question": "Who built the ark? (Genesis 6)",
-    "answer": "Noah"
+    "question": "Who is the liar according to 1 John 2:22?",
+    "answer": "Whoever denies that Jesus is the Christ"
   },
-
-{
-  "type": "fill",
-  "question": "For God so loved the _____ that he gave his one and only _____, that whoever believes in him shall not perish but have eternal life. (John 3:16)",
-  "answer": "world, Son"
-}
-
-
-{
-  "type": "fill",
-  "question": "The Lord is my _____, I lack _____. (Psalm 23:1)",
-  "answer": "shepherd, nothing"
-},
+  {
+    "type": "fill",
+    "question": "For God so loved the _____ that he gave his one and only _____. (John 3:16)",
+    "answer": "world, Son"
+  },
   {
     "type": "rapid",
     "question": "Who denied Jesus three times?",
@@ -336,7 +320,8 @@ JSON format:
 async function generateQuestions(
   book,
   chapter,
-  count = 20
+  count = 20,
+  type = "mcq"
 ) {
   const bibleData = await getBibleChapter(
     book,
@@ -347,7 +332,8 @@ async function generateQuestions(
     book,
     chapter,
     bibleData.verses,
-    Number(count) || 20
+    Number(count) || 20,
+    type
   );
 }
 
@@ -393,6 +379,7 @@ function sendQuestion(pin) {
 
   room.answers = {};
   room.timeLeft = QUESTION_TIME;
+  room.paused = false;
 
   io.to(pin).emit("question", {
     number: room.currentQuestion + 1,
@@ -407,12 +394,15 @@ function sendQuestion(pin) {
   );
 
   room.timer = setInterval(() => {
+    if (room.paused) return;
+
     room.timeLeft--;
 
     io.to(pin).emit("timer", room.timeLeft);
 
     if (room.timeLeft <= 0) {
       clearInterval(room.timer);
+      room.timer = null;
 
       reveal(pin);
     }
@@ -461,6 +451,7 @@ io.on("connection", (socket) => {
       timer: null,
       revealTimeout: null,
       timeLeft: QUESTION_TIME,
+      paused: false,
     };
 
     socket.join(pin);
@@ -470,7 +461,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "setQuiz",
-    async ({ pin, book, chapter, count }) => {
+    async ({ pin, book, chapter, count, type }) => {
       const room = rooms[pin];
 
       if (!room) {
@@ -481,13 +472,14 @@ io.on("connection", (socket) => {
       try {
         socket.emit(
           "errorMessage",
-          "Generating questions..."
+          "Generating NIV questions..."
         );
 
         room.questions = await generateQuestions(
           book,
           chapter,
-          Number(count) || 20
+          Number(count) || 20,
+          type || "mcq"
         );
 
         room.currentQuestion = 0;
@@ -549,6 +541,58 @@ io.on("connection", (socket) => {
     room.answers = {};
 
     sendQuestion(pin);
+  });
+
+  socket.on("pauseGame", (pin) => {
+    const room = rooms[pin];
+
+    if (!room) return;
+
+    room.paused = true;
+
+    if (room.timer) {
+      clearInterval(room.timer);
+      room.timer = null;
+    }
+
+    io.to(pin).emit("gamePaused");
+  });
+
+  socket.on("resumeGame", (pin) => {
+    const room = rooms[pin];
+
+    if (!room) return;
+
+    room.paused = false;
+
+    io.to(pin).emit("gameResumed");
+
+    room.timer = setInterval(() => {
+      if (room.paused) return;
+
+      room.timeLeft--;
+
+      io.to(pin).emit("timer", room.timeLeft);
+
+      if (room.timeLeft <= 0) {
+        clearInterval(room.timer);
+        room.timer = null;
+
+        reveal(pin);
+      }
+    }, 1000);
+  });
+
+  socket.on("exitGame", (pin) => {
+    const room = rooms[pin];
+
+    if (!room) return;
+
+    clearRoomTimers(room);
+
+    io.to(pin).emit("gameExited");
+
+    delete rooms[pin];
   });
 
   socket.on(

@@ -347,15 +347,11 @@ function App() {
   value={questionType}
   onChange={(e) => setQuestionType(e.target.value)}
 >
-  <option value="mcq">Multiple Choice</option>
-  <option value="ai-mcq">TOUGH Multiple Choice</option>
-  <option value="fill">Fill in the Blank</option>
-  <option value="mixed">Mixed</option>
-  <option value="verse-mcq">Verse-by-Verse MCQ</option>
-  <option value="verse-fill">Verse-by-Verse Fill Blank</option>
-  <option value="verse-mixed">Verse-by-Verse Mixed</option>
-  <option value="verse-5-each">
-    Every Verse - 5 Questions Each
+ <option value="mixed">Mixed</option>
+<option value="mcq">Multiple Choice</option>
+<option value="fill">Fill in the Blank</option>
+<option value="system-mcq">AI Multiple Choice</option>
+<option value="verse">Verse</option>
   </option>
 </select>
 
