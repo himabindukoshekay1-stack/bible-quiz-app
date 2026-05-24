@@ -58,25 +58,112 @@ function safeJsonParse(text) {
 }
 
 async function getBibleChapter(book, chapter) {
-  const url = `https://bible-api.com/${encodeURIComponent(
-    book + " " + chapter
-  )}?translation=web`;
+  const bibleId = process.env.NIV_BIBLE_ID;
+  const apiKey = process.env.API_BIBLE_KEY;
 
-  const res = await fetch(url);
+  const booksRes = await fetch(
+    `https://rest.api.bible/v1/bibles/${bibleId}/books`,
+    {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "text/plain",
+      },
+    }
+  );
 
-  const data = await res.json();
+  const booksData = await booksRes.json();
 
-  if (!data.verses) {
-    console.log(data);
-    throw new Error("Failed to fetch Bible chapter");
+  if (!booksData.data) {
+    console.log(booksData);
+    throw new Error("Failed to fetch NIV books");
+  }
+
+  const matchedBook = booksData.data.find(
+    (b) =>
+      b.name.toLowerCase() === book.toLowerCase() ||
+      b.nameLong.toLowerCase() === book.toLowerCase()
+  );
+
+  if (!matchedBook) {
+    throw new Error(`Book not found: ${book}`);
+  }
+
+  const chaptersRes = await fetch(
+    `https://rest.api.bible/v1/bibles/${bibleId}/books/${matchedBook.id}/chapters`,
+    {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "text/plain",
+      },
+    }
+  );
+
+  const chaptersData = await chaptersRes.json();
+
+  if (!chaptersData.data) {
+    console.log(chaptersData);
+    throw new Error("Failed to fetch chapters");
+  }
+
+  const matchedChapter = chaptersData.data.find(
+    (c) => c.number === String(chapter)
+  );
+
+  if (!matchedChapter) {
+    throw new Error(`Chapter not found: ${chapter}`);
+  }
+
+  const chapterRes = await fetch(
+    `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
+    {
+      headers: {
+        "api-key": apiKey,
+        "Content-Type": "text/plain",
+      },
+    }
+  );
+
+  const chapterData = await chapterRes.json();
+
+  if (!chapterData.data) {
+    console.log(chapterData);
+    throw new Error("Failed to fetch NIV chapter");
+  }
+
+  const html = chapterData.data.content;
+
+  const verseRegex =
+    /<span[^>]*class="v"[^>]*>(\d+)<\/span>(.*?)(?=<span[^>]*class="v"|$)/g;
+
+  const verses = [];
+
+  let match;
+
+  while ((match = verseRegex.exec(html)) !== null) {
+    const verseNumber = match[1];
+
+    const verseText = match[2]
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (verseText) {
+      verses.push({
+        verse: verseNumber,
+        text: verseText,
+      });
+    }
+  }
+
+  if (verses.length === 0) {
+    throw new Error("No NIV verses parsed");
   }
 
   return {
-    text: data.text,
-    verses: data.verses.map((v) => ({
-      verse: v.verse,
-      text: v.text,
-    })),
+    text: verses.map((v) => v.text).join(" "),
+    verses,
   };
 }
 
