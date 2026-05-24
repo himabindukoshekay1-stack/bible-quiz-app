@@ -113,15 +113,15 @@ async function getBibleChapter(book, chapter) {
     throw new Error(`Chapter not found: ${chapter}`);
   }
 
-  const chapterRes = await fetch(
-  `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-
-    {
-      headers: {
-        "api-key": apiKey,
-        "Content-Type": "text/plain",
-      },
-    }
-  );
+const chapterRes = await fetch(
+  `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
+  {
+    headers: {
+      "api-key": apiKey,
+      "Content-Type": "text/plain",
+    },
+  }
+);
 
   const chapterData = await chapterRes.json();
 
