@@ -114,7 +114,7 @@ async function getBibleChapter(book, chapter) {
   }
 
   const chapterRes = await fetch(
-    `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`,
+  `https://rest.api.bible/v1/bibles/${bibleId}/chapters/${matchedChapter.id}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-
     {
       headers: {
         "api-key": apiKey,
