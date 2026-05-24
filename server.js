@@ -227,7 +227,7 @@ IMPORTANT RULES:
 - Questions must sound like real Bible-study questions.
 - Questions should follow verse-by-verse order.
 - Questions should focus on understanding scripture.
-- Answers must come directly from the verse text.
+- Answers must come directly from the verse text.onst prompt = `
 - Keep questions short and clear.
 - Include references when possible.
 
@@ -291,7 +291,7 @@ Example:
     "answer": "So that they would not sin"
   }
 ]
-`;
+`;const prompt = `
 
 async function generateQuestions(book, chapter, count = 20, type = "mcq") {
   const bibleData = await getBibleChapter(book, chapter);
