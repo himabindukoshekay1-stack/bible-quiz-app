@@ -291,7 +291,7 @@ Example:
     "answer": "So that they would not sin"
   }
 ]
-`;const prompt = `
+
 
 async function generateQuestions(book, chapter, count = 20, type = "mcq") {
   const bibleData = await getBibleChapter(book, chapter);
