@@ -234,6 +234,25 @@ function validateQuestions(rawQuestions, count) {
   return valid.slice(0, count);
 }
 
+function removeDuplicateQuestions(questions) {
+  const seen = new Set();
+
+  return questions.filter((q) => {
+    const key = q.question
+      .toLowerCase()
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+
+    return true;
+  });
+}
+
 async function generateAiQuestions(
   book,
   chapter,
@@ -269,6 +288,9 @@ IMPORTANT RULES:
 - Include references when possible.
 - Prefer scripture-study style questions over trivia questions.
 - Generate questions similar to Sunday school, Bible quiz competitions, and verse-by-verse Bible study guides.
+- Do NOT repeat similar questions.
+- Every question must test a different verse or concept.
+- Avoid asking the same idea in different wording.
 
 QUESTION TYPES:
 1. mcq
@@ -351,7 +373,12 @@ Example:
 
   const parsed = safeJsonParse(text);
 
-  return validateQuestions(parsed, count);
+ const validated = validateQuestions(parsed, count);
+
+const uniqueQuestions =
+  removeDuplicateQuestions(validated);
+
+return uniqueQuestions;
 }
 
 async function generateQuestions(
