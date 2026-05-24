@@ -267,6 +267,8 @@ IMPORTANT RULES:
 - Answers must come directly from the verse text.
 - Keep questions short and clear.
 - Include references when possible.
+- Prefer scripture-study style questions over trivia questions.
+- Generate questions similar to Sunday school, Bible quiz competitions, and verse-by-verse Bible study guides.
 
 QUESTION TYPES:
 1. mcq
@@ -330,7 +332,7 @@ Example:
   const response =
     await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      temperature: 0.4,
+      temperature: 0.2,
       messages: [
         {
           role: "system",
