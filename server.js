@@ -191,14 +191,14 @@ function validateQuestions(rawQuestions, count) {
         ? q.options.map((o) => String(o).trim()).filter(Boolean)
         : [];
 
-      const uniqueOptions = [...new Set(options)].slice(0, 3);
+      const uniqueOptions = [...new Set(options)].slice(0, 4);
 
       const answer = String(q.answer || "").trim();
 
       if (
         uniqueOptions.length < 2 ||
         !uniqueOptions.includes(answer)
-      ) {
+      ) {	
         return null;
       }
 
