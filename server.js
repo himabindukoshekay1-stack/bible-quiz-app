@@ -138,44 +138,41 @@ const cleanedHtml = html
   .replace(/\n/g, " ")
   .replace(/\r/g, " ");
 
-const parts = cleanedHtml.split(
-  /<span class="v" data-number="\d+"/
-);
+const content = chapterData.data.content;
 
-parts.shift();
-
-for (const part of parts) {
-  const numberMatch = part.match(/>(\d+)<\/span>/);
-
-  if (!numberMatch) continue;
-
-  const verseNumber = numberMatch[1];
-
-  const verseContent = part
-    .replace(/.*?<\/span>/, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (verseContent) {
-    verses.push({
-      verse: verseNumber,
-      text: verseContent,
-    });
-  }
+if (!content) {
+  throw new Error("No NIV content returned");
 }
 
-  if (verses.length === 0) {
-    throw new Error("No NIV verses parsed");
-  }
+const lines = content
+  .split("\n")
+  .map((line) => line.trim())
+  .filter(Boolean);
 
-  return {
-    text: verses.map((v) => v.text).join(" "),
-    verses,
-  };
+const verses = [];
+
+for (const line of lines) {
+  const match = line.match(/^(\d+)\s+(.*)$/);
+
+  if (!match) continue;
+
+  verses.push({
+    verse: match[1],
+    text: match[2].trim(),
+  });
 }
+
+if (verses.length === 0) {
+  verses.push({
+    verse: "1",
+    text: content,
+  });
+}
+
+return {
+  text: verses.map((v) => v.text).join(" "),
+  verses,
+};
 
 function validateQuestions(rawQuestions, count) {
   if (!Array.isArray(rawQuestions)) {
