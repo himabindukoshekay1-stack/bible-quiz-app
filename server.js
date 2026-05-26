@@ -267,30 +267,24 @@ async function generateAiQuestions(
     )
     .join("\n");
 
-  const prompt = `
-You are a Bible quiz teacher creating verse-by-verse NIV Bible study questions.
+ const prompt = `
+You are a Bible study teacher.
 
-Book: ${book}
-Chapter: ${chapter}
+Your job is to create Bible quiz questions STRICTLY from the supplied NIV verses.
 
-Use ONLY the NIV verses supplied below.
-
-IMPORTANT RULES:
-- NEVER paraphrase scripture.
-- NEVER rewrite scripture.
+VERY IMPORTANT:
+- NEVER paraphrase verses.
 - NEVER summarize verses.
-- Use the EXACT NIV wording from the supplied text.
-- Questions must sound like real Bible-study questions.
-- Questions should follow verse-by-verse order.
-- Questions should focus on understanding scripture.
-- Answers must come directly from the verse text.
-- Keep questions short and clear.
-- Include references when possible.
-- Prefer scripture-study style questions over trivia questions.
-- Generate questions similar to Sunday school, Bible quiz competitions, and verse-by-verse Bible study guides.
-- Do NOT repeat similar questions.
-- Every question must test a different verse or concept.
-- Avoid asking the same idea in different wording.
+- NEVER rewrite NIV wording.
+- ALL answers MUST match the exact NIV wording from the supplied text.
+- ALL fill-in-the-blank questions MUST use exact NIV verses.
+- ALL direct questions MUST use exact NIV phrases.
+- Questions should feel like verse-by-verse Bible study questions.
+- Questions should follow chapter order.
+- Use wording directly from scripture whenever possible.
+- Do NOT invent theology explanations.
+- Do NOT simplify scripture wording.
+- Preserve NIV wording exactly.
 
 QUESTION TYPES:
 1. mcq
@@ -298,27 +292,38 @@ QUESTION TYPES:
 3. fill
 4. rapid
 
-RULES FOR MCQ:
+MCQ RULES:
 - EXACTLY 4 choices.
-- Only 1 correct answer.
-- Wrong answers should sound believable.
+- Only ONE correct answer.
+- Wrong answers should come from nearby verses or nearby concepts.
+- Answers can be phrases directly from scripture.
+- Do NOT shorten answers unnaturally.
 
-RULES FOR DIRECT QUESTIONS:
-- Use questions like:
+DIRECT QUESTION RULES:
+- Ask questions like:
   - Who...
   - What...
   - Why...
   - According to...
+- Answers MUST be exact scripture wording.
 
-RULES FOR FILL IN THE BLANKS:
-- Use the COMPLETE NIV verse.
+FILL IN THE BLANK RULES:
+- Use COMPLETE NIV verses.
 - Remove ONLY 2 or 3 important words.
+- Keep ALL remaining wording EXACTLY unchanged.
 - Use underscores for blanks.
-- Keep all original wording unchanged.
 
-RULES FOR RAPID FIRE:
-- Very short scripture-based questions.
-- Short direct answers.
+RAPID FIRE RULES:
+- Very short scripture questions.
+- Very short exact scripture answers.
+
+DUPLICATE RULES:
+- Do NOT repeat the same question idea.
+- Spread questions across different verses.
+- Avoid similar wording.
+
+Book: ${book}
+Chapter: ${chapter}
 
 Use ONLY these NIV verses:
 ${verseText}
