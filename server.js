@@ -57,10 +57,59 @@ function safeJsonParse(text) {
   return JSON.parse(cleaned);
 }
 
-function removeDuplicateQuestions(questions) {
-  const seenVerses = new Set();
-  const seenKeywords = new Set();
+function removeDuplicateQuestions(
+  questions
+) {
+  const usedVerses = new Set();
 
+  const usedConcepts =
+    new Set();
+
+  return questions.filter((q) => {
+    const question =
+      q.question.toLowerCase();
+
+    // Extract verse reference
+    const verseMatch =
+      question.match(
+        /\((.*?)\)/
+      );
+
+    const verse =
+      verseMatch?.[1] || "";
+
+    // Create simplified concept key
+    const concept = question
+      .replace(/\(.*?\)/g, "")
+      .replace(/[^\w\s]/g, "")
+      .split(" ")
+      .slice(0, 6)
+      .join(" ");
+
+    // Prevent same verse reuse
+    if (
+      verse &&
+      usedVerses.has(verse)
+    ) {
+      return false;
+    }
+
+    // Prevent similar concepts
+    if (
+      usedConcepts.has(concept)
+    ) {
+      return false;
+    }
+
+    if (verse) {
+      usedVerses.add(verse);
+    }
+
+    usedConcepts.add(concept);
+
+    return true;
+  });
+}
   return questions.filter((q) => {
     const question = q.question
       .toLowerCase()
