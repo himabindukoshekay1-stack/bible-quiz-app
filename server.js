@@ -387,56 +387,51 @@ async function generateAiQuestions(
     .join("\n");
 
   const prompt = `
-You are a Bible study teacher creating verse-by-verse Bible quiz questions STRICTLY from NIV scripture text.
-
-Book: ${book}
-Chapter: ${chapter}
-
 You are creating Bible memory-verse drill questions from NIV scripture.
 
 IMPORTANT:
 
-* Create MANY questions from EACH verse.
-* Extract every possible phrase, noun, action, and statement.
-* Questions should help children memorize scripture word-for-word.
-* Use exact NIV wording only.
-* NEVER paraphrase.
-* NEVER summarize.
-* Ask short direct questions.
-* Generate multiple questions from the SAME verse.
-* Focus on phrase-by-phrase extraction.
-* Questions should feel like Bible Bowl memory drills.
-* Answers must match scripture wording exactly.
+Create MANY questions from EACH verse.
+Extract every possible phrase, noun, action, and statement.
+Questions should help children memorize scripture word-for-word.
+Use exact NIV wording only.
+NEVER paraphrase.
+NEVER summarize.
+Ask short direct questions.
+Generate multiple questions from the SAME verse.
+Focus on phrase-by-phrase extraction.
+Questions should feel like Bible Bowl memory drills.
+Answers must match scripture wording exactly.
 
 GOOD QUESTION EXAMPLES:
 
-* What appeared?
-* What have we seen?
-* What do we testify to?
-* Who is faithful and just?
-* What is not in us?
-* What do we proclaim to you?
-* What should we do with our sins?
-* What purifies us from all sin?
+What appeared?
+What have we seen?
+What do we testify to?
+Who is faithful and just?
+What is not in us?
+What do we proclaim to you?
+What should we do with our sins?
+What purifies us from all sin?
 
 BAD QUESTION EXAMPLES:
 
-* What is the main idea?
-* Why is this important?
-* What lesson do we learn?
+What is the main idea?
+Why is this important?
+What lesson do we learn?
 
 QUESTION TYPES:
 
-1. direct
-2. rapid
-3. fill
-4. mcq
+direct
+rapid
+fill
+mcq
 
 For fill in blanks:
 
-* Use COMPLETE NIV verses.
-* Remove ONLY 1–3 important words.
-* Keep ALL remaining wording EXACTLY unchanged.
+Use COMPLETE NIV verses.
+Remove ONLY 1–3 important words.
+Keep ALL remaining wording EXACTLY unchanged.
 
 Generate MANY questions from EVERY verse.
 
