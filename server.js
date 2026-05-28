@@ -1,4 +1,3 @@
-````js
 require("dotenv").config();
 
 const express = require("express");
@@ -881,4 +880,3 @@ server.listen(
     );
   }
 );
-````
