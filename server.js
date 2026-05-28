@@ -438,6 +438,15 @@ Use COMPLETE NIV verses.
 Remove ONLY 1–3 important words.
 Keep ALL remaining wording EXACTLY unchanged.
 
+IMPORTANT RULES: - EVERY question MUST include the Bible reference at the END of the question. 
+- Format references EXACTLY like: (1 John 1:1) (1 John 1:2) (Colossians 1:15) GOOD EXAMPLES: 
+- What appeared? (1 John 1:2) - What do we testify to? (1 John 1:2) - What is God? (1 John 1:5) 
+- Who is faithful and just? (1 John 1:9) BAD EXAMPLES: 
+- What appeared? - What is God? 
+- Who is faithful and just? RULE: 
+- NEVER omit the Bible reference. 
+- EVERY question must contain the verse reference.
+
 Generate MANY questions from EVERY verse.
 
 Use ONLY supplied NIV verses.
