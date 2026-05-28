@@ -403,6 +403,11 @@ Focus on phrase-by-phrase extraction.
 Questions should feel like Bible Bowl memory drills.
 Answers must match scripture wording exactly.
 
+- EVERY question MUST end with the Bible reference in parentheses. 
+- Format references exactly like: (1 John 1:1) (1 John 1:2) (Colossians 1:15) 
+- NEVER omit references. 
+- EVERY question must contain a verse reference.
+
 GOOD QUESTION EXAMPLES:
 
 What appeared?
