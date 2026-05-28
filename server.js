@@ -113,7 +113,7 @@ async function getBibleChapter(book, chapter) {
   }
 
   const booksRes = await fetch(
-    `https://api.scripture.api.bible/v1/bibles/${bibleId}/books`,
+    `https://rest.api.bible/v1/bibles/${bibleId}/books/${matchedBook.id}/chapters`,
     {
       headers: {
         "api-key": apiKey,
