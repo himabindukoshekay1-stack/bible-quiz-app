@@ -392,56 +392,55 @@ You are a Bible study teacher creating verse-by-verse Bible quiz questions STRIC
 Book: ${book}
 Chapter: ${chapter}
 
-IMPORTANT RULES:
-- NEVER paraphrase scripture.
-- NEVER summarize scripture.
-- NEVER rewrite scripture wording.
-- Use ONLY the EXACT NIV wording from supplied verses.
-- Questions should feel like Bible Bowl and Sunday school study questions.
-- Questions should follow verse-by-verse order.
-- Questions must test different verses and concepts.
-- Generate at most ONE question per verse.
-- Spread questions evenly across the chapter.
-- Avoid repeating the same question idea.
-- Answers MUST match scripture wording exactly.
+You are creating Bible memory-verse drill questions from NIV scripture.
 
-QUESTION TYPE:
-Generate ONLY "${type}" questions.
+IMPORTANT:
 
-Generate ${count * 2} questions.
+* Create MANY questions from EACH verse.
+* Extract every possible phrase, noun, action, and statement.
+* Questions should help children memorize scripture word-for-word.
+* Use exact NIV wording only.
+* NEVER paraphrase.
+* NEVER summarize.
+* Ask short direct questions.
+* Generate multiple questions from the SAME verse.
+* Focus on phrase-by-phrase extraction.
+* Questions should feel like Bible Bowl memory drills.
+* Answers must match scripture wording exactly.
 
-MCQ RULES:
-- EXACTLY 4 choices.
-- Only ONE correct answer.
-- Wrong answers should come from nearby verses or nearby chapter concepts.
-- Choices may be phrases directly from scripture.
-- Every MCQ MUST contain:
-  - question
-  - options
-  - answer
+GOOD QUESTION EXAMPLES:
 
-DIRECT QUESTION RULES:
-- Use questions like:
-  - Who...
-  - What...
-  - Why...
-  - According to...
-- Answers MUST use exact scripture wording.
+* What appeared?
+* What have we seen?
+* What do we testify to?
+* Who is faithful and just?
+* What is not in us?
+* What do we proclaim to you?
+* What should we do with our sins?
+* What purifies us from all sin?
 
-FILL IN THE BLANK RULES:
-- Use COMPLETE NIV verses.
-- Remove ONLY 2 or 3 important words.
-- Keep ALL remaining wording EXACTLY unchanged.
-- Use underscores for blanks.
+BAD QUESTION EXAMPLES:
 
-RAPID FIRE RULES:
-- Very short scripture-based questions.
-- Very short exact scripture answers.
+* What is the main idea?
+* Why is this important?
+* What lesson do we learn?
 
-Use ONLY these verses:
-${verseText}
+QUESTION TYPES:
 
-Return ONLY valid JSON array.
+1. direct
+2. rapid
+3. fill
+4. mcq
+
+For fill in blanks:
+
+* Use COMPLETE NIV verses.
+* Remove ONLY 1–3 important words.
+* Keep ALL remaining wording EXACTLY unchanged.
+
+Generate MANY questions from EVERY verse.
+
+Use ONLY supplied NIV verses.
 `;
 
   const response =
