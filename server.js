@@ -422,10 +422,7 @@ io.on("connection", (socket) => {
 
       socket.join(pin);
 
-      socket.emit(
-        "roomCreated",
-        pin
-      );
+      socket.emit( "answerResult", { correct, correctAnswer: q.answer, } );
     }
   );
 
