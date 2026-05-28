@@ -73,14 +73,6 @@ function removeDuplicateQuestions(
     const question =
       q.question.toLowerCase();
 
-    const verseMatch =
-      question.match(
-        /\((.*?)\)/
-      );
-
-    const verse =
-      verseMatch?.[1] || "";
-
     const concept = question
       .replace(/\(.*?\)/g, "")
       .replace(/[^\w\s]/g, "")
@@ -89,20 +81,9 @@ function removeDuplicateQuestions(
       .join(" ");
 
     if (
-      verse &&
-      usedVerses.has(verse)
-    ) {
-      return false;
-    }
-
-    if (
       usedConcepts.has(concept)
     ) {
       return false;
-    }
-
-    if (verse) {
-      usedVerses.add(verse);
     }
 
     usedConcepts.add(concept);
@@ -136,6 +117,8 @@ async function getBibleChapter(
     await booksRes.json();
 
   if (!booksData.data) {
+    console.log(booksData);
+
     throw new Error(
       "Failed to fetch NIV books"
     );
@@ -196,6 +179,17 @@ async function getBibleChapter(
 
   const chapterData =
     await chapterRes.json();
+
+  if (
+    !chapterData.data ||
+    !chapterData.data.content
+  ) {
+    console.log(chapterData);
+
+    throw new Error(
+      "Failed to fetch NIV chapter"
+    );
+  }
 
   const content =
     chapterData.data.content;
@@ -423,6 +417,32 @@ async function generateQuestions(
   );
 }
 
+function sendQuestion(pin) {
+  const room = rooms[pin];
+
+  if (!room) return;
+
+  const q =
+    room.questions[
+      room.currentQuestion
+    ];
+
+  if (!q) return;
+
+  io.to(pin).emit(
+    "question",
+    {
+      number:
+        room.currentQuestion + 1,
+      total:
+        room.questions.length,
+      ...q,
+      timeLeft:
+        QUESTION_TIME,
+    }
+  );
+}
+
 io.on("connection", (socket) => {
   socket.on(
     "createRoom",
@@ -467,16 +487,106 @@ io.on("connection", (socket) => {
             type
           );
 
+        room.currentQuestion = 0;
+
         socket.emit(
           "quizSet",
           room.questions
         );
+
+        io.to(pin).emit(
+          "question",
+          {
+            number: 1,
+            total:
+              room.questions
+                .length,
+            ...room.questions[0],
+            timeLeft:
+              QUESTION_TIME,
+          }
+        );
       } catch (e) {
+        console.error(e);
+
         socket.emit(
           "errorMessage",
           e.message
         );
       }
+    }
+  );
+
+  socket.on(
+    "startGame",
+    (pin) => {
+      const room =
+        rooms[pin];
+
+      if (!room) return;
+
+      room.currentQuestion = 0;
+
+      sendQuestion(pin);
+    }
+  );
+
+  socket.on(
+    "joinRoom",
+    ({ pin, name }) => {
+      const room =
+        rooms[pin];
+
+      if (!room) return;
+
+      room.players[socket.id] = {
+        id: socket.id,
+        name,
+        score: 0,
+      };
+
+      socket.join(pin);
+
+      io.to(pin).emit(
+        "playersUpdate",
+        Object.values(
+          room.players
+        )
+      );
+    }
+  );
+
+  socket.on(
+    "submitAnswer",
+    ({ pin, answer }) => {
+      const room =
+        rooms[pin];
+
+      if (!room) return;
+
+      const q =
+        room.questions[
+          room.currentQuestion
+        ];
+
+      if (!q) return;
+
+      const correct =
+        String(answer)
+          .trim()
+          .toLowerCase() ===
+        String(q.answer)
+          .trim()
+          .toLowerCase();
+
+      socket.emit(
+        "answerResult",
+        {
+          correct,
+          correctAnswer:
+            q.answer,
+        }
+      );
     }
   );
 });
