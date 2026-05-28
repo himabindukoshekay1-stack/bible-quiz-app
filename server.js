@@ -64,8 +64,6 @@ function safeJsonParse(text) {
 function removeDuplicateQuestions(
   questions
 ) {
-  const usedVerses = new Set();
-
   const usedConcepts =
     new Set();
 
@@ -117,8 +115,6 @@ async function getBibleChapter(
     await booksRes.json();
 
   if (!booksData.data) {
-    console.log(booksData);
-
     throw new Error(
       "Failed to fetch NIV books"
     );
@@ -184,8 +180,6 @@ async function getBibleChapter(
     !chapterData.data ||
     !chapterData.data.content
   ) {
-    console.log(chapterData);
-
     throw new Error(
       "Failed to fetch NIV chapter"
     );
@@ -217,9 +211,6 @@ async function getBibleChapter(
   }
 
   return {
-    text: verses
-      .map((v) => v.text)
-      .join(" "),
     verses,
   };
 }
@@ -232,71 +223,14 @@ function validateQuestions(
     return [];
   }
 
-  const valid = rawQuestions
+  return rawQuestions
     .filter(
       (q) =>
         q &&
-        typeof q.question ===
-          "string"
+        q.question &&
+        q.answer
     )
-    .filter(
-      (q) =>
-        q.question.includes("(") &&
-        q.question.includes(")")
-    )
-    .map((q) => {
-      if (
-        q.type === "fill" ||
-        q.type === "direct" ||
-        q.type === "rapid"
-      ) {
-        return {
-          type: q.type,
-          question: q.question,
-          answer: String(
-            q.answer || ""
-          ).trim(),
-        };
-      }
-
-      const options =
-        Array.isArray(q.options)
-          ? q.options
-              .map((o) =>
-                String(o).trim()
-              )
-              .filter(Boolean)
-          : [];
-
-      const uniqueOptions = [
-        ...new Set(options),
-      ].slice(0, 4);
-
-      const answer = String(
-        q.answer || ""
-      ).trim();
-
-      if (
-        uniqueOptions.length < 2 ||
-        !uniqueOptions.includes(
-          answer
-        )
-      ) {
-        return null;
-      }
-
-      return {
-        type: "mcq",
-        question: q.question,
-        options: shuffle(
-          uniqueOptions
-        ),
-        answer,
-      };
-    })
-    .filter(Boolean);
-
-  return valid.slice(0, count);
+    .slice(0, count);
 }
 
 async function generateAiQuestions(
@@ -306,45 +240,28 @@ async function generateAiQuestions(
   count = 20,
   type = "mcq"
 ) {
-  const shuffledVerses =
-    shuffle(verses);
-
-  const verseText =
-    shuffledVerses
-      .map(
-        (v) =>
-          `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
-      )
-      .join("\n");
+  const verseText = verses
+    .map(
+      (v) =>
+        `${book} ${chapter}:${v.verse} - ${clean(v.text)}`
+    )
+    .join("\n");
 
   const prompt = `
-You are creating Bible memory-verse drill questions from NIV scripture.
+You are creating Bible memory drill questions from NIV scripture.
 
 IMPORTANT:
-- Create MANY questions from EACH verse.
-- Extract every possible phrase, noun, action, and statement.
-- Questions should help children memorize scripture word-for-word.
-- Use exact NIV wording only.
+- Use ONLY exact NIV wording.
 - NEVER paraphrase.
-- NEVER summarize.
-- Ask short direct questions.
-- Generate multiple questions from the SAME verse.
-- Focus on phrase-by-phrase extraction.
+- EVERY question must include the Bible reference.
+- Generate MANY questions from each verse.
 - Questions should feel like Bible Bowl memory drills.
-- Answers must match scripture wording exactly.
-
-- EVERY question MUST include the Bible reference at the END.
-
-GOOD EXAMPLES:
-- What appeared? (1 John 1:2)
-- What do we testify to? (1 John 1:2)
-- What is God? (1 John 1:5)
 
 QUESTION TYPES:
-1. direct
-2. rapid
+1. mcq
+2. direct
 3. fill
-4. mcq
+4. rapid
 
 Generate ONLY "${type}" questions.
 
@@ -366,7 +283,7 @@ Return ONLY valid JSON array.
         {
           role: "system",
           content:
-            "You create Bible memory questions from supplied NIV scripture only.",
+            "You create Bible memory questions from NIV scripture only.",
         },
         {
           role: "user",
@@ -429,6 +346,11 @@ function sendQuestion(pin) {
 
   if (!q) return;
 
+  room.answers = {};
+
+  room.timeLeft =
+    QUESTION_TIME;
+
   io.to(pin).emit(
     "question",
     {
@@ -438,9 +360,50 @@ function sendQuestion(pin) {
         room.questions.length,
       ...q,
       timeLeft:
-        QUESTION_TIME,
+        room.timeLeft,
     }
   );
+
+  room.timer = setInterval(() => {
+    room.timeLeft--;
+
+    io.to(pin).emit(
+      "timer",
+      room.timeLeft
+    );
+
+    if (room.timeLeft <= 0) {
+      clearInterval(
+        room.timer
+      );
+
+      io.to(pin).emit(
+        "revealAnswer",
+        {
+          correctAnswer:
+            q.answer,
+        }
+      );
+
+      setTimeout(() => {
+        room.currentQuestion++;
+
+        if (
+          room.currentQuestion >=
+          room.questions.length
+        ) {
+          io.to(pin).emit(
+            "gameOver",
+            {}
+          );
+
+          return;
+        }
+
+        sendQuestion(pin);
+      }, REVEAL_TIME * 1000);
+    }
+  }, 1000);
 }
 
 io.on("connection", (socket) => {
@@ -491,19 +454,10 @@ io.on("connection", (socket) => {
 
         socket.emit(
           "quizSet",
-          room.questions
-        );
-
-        io.to(pin).emit(
-          "question",
           {
-            number: 1,
-            total:
+            count:
               room.questions
                 .length,
-            ...room.questions[0],
-            timeLeft:
-              QUESTION_TIME,
           }
         );
       } catch (e) {
@@ -564,6 +518,11 @@ io.on("connection", (socket) => {
 
       if (!room) return;
 
+      const player =
+        room.players[socket.id];
+
+      if (!player) return;
+
       const q =
         room.questions[
           room.currentQuestion
@@ -579,13 +538,24 @@ io.on("connection", (socket) => {
           .trim()
           .toLowerCase();
 
+      if (correct) {
+        player.score +=
+          100 +
+          room.timeLeft * 10;
+      }
+
       socket.emit(
-        "answerResult",
+        "answerSubmitted",
         {
           correct,
-          correctAnswer:
-            q.answer,
         }
+      );
+
+      io.to(pin).emit(
+        "playersUpdate",
+        Object.values(
+          room.players
+        )
       );
     }
   );
@@ -601,19 +571,16 @@ app.use(
   )
 );
 
-app.get(
-  /.*/,
-  (req, res) => {
-    res.sendFile(
-      path.join(
-        __dirname,
-        "client",
-        "dist",
-        "index.html"
-      )
-    );
-  }
-);
+app.get(/.*/, (req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "client",
+      "dist",
+      "index.html"
+    )
+  );
+});
 
 const PORT =
   process.env.PORT || 4000;
