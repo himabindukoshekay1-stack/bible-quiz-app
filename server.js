@@ -512,17 +512,11 @@ function clearRoomTimers(room) {
     room.revealTimeout = null;
   }
 }
-
 function sendQuestion(pin) {
+
   const room = rooms[pin];
-if (source === "adhoc") {
 
-  const adhocQuestions =
-    getAdhocQuestions(
-      book,
-      chapter
-    );
-
+  if (!room) return;
   if (
     !adhocQuestions ||
     adhocQuestions.length === 0
