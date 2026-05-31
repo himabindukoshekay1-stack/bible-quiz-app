@@ -3,6 +3,8 @@ import { io } from "socket.io-client";
 import "./App.css";
 
 const socket = io();
+const [source, setSource] =
+  useState("ai");
 
 const bibleBooks = {
   Genesis: 50,
@@ -247,6 +249,7 @@ function App() {
       chapter: selectedChapter,
       count: questionCount,
       type: questionType,
+	  source,
     });
   };
 
@@ -439,6 +442,33 @@ function App() {
                   Rapid Fire Questions
                 </option>
               </select>
+			  
+			  <div style={{ marginTop: "10px" }}>
+  <label>
+    Question Source
+  </label>
+
+  <select
+    value={source}
+    onChange={(e) =>
+      setSource(
+        e.target.value
+      )
+    }
+  >
+    <option value="ai">
+      AI Generated
+    </option>
+
+    <option value="adhoc">
+      Adhoc Questions
+    </option>
+
+    <option value="mixed">
+      Mixed
+    </option>
+  </select>
+</div>
 
               <button onClick={loadQuiz}>
                 Load Quiz

@@ -1,0 +1,954 @@
+[
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1",
+    "question": "Who wrote the Book of Colossians? (Colossians 1)",
+    "options": [
+      "Peter",
+      "John",
+      "Paul",
+      "Timothy"
+    ],
+    "answer": "Paul"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1",
+    "question": "Who was with Paul when he wrote this letter? (Colossians 1)",
+    "options": [
+      "Luke",
+      "Timothy",
+      "Barnabas",
+      "Silas"
+    ],
+    "answer": "Timothy"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1",
+    "question": "How did Paul become an apostle of Christ Jesus? (Colossians 1)",
+    "options": [
+      "By church appointment",
+      "By the will of God",
+      "By his own choice",
+      "By Timothy's recommendation"
+    ],
+    "answer": "By the will of God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:2",
+    "question": "To whom was this letter written? (Colossians 1:2)",
+    "options": [
+      "Church in Ephesus",
+      "Church in Corinth",
+      "God's holy people in Colossae",
+      "Church in Philippi"
+    ],
+    "answer": "God's holy people in Colossae"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:2",
+    "question": "What greeting did Paul give? (Colossians 1:2)",
+    "options": [
+      "Mercy and truth",
+      "Grace and peace",
+      "Faith and hope",
+      "Joy and love"
+    ],
+    "answer": "Grace and peace"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:3",
+    "question": "To whom did Paul give thanks when praying? (Colossians 1:3)",
+    "options": [
+      "Timothy",
+      "Epaphras",
+      "God, the Father of our Lord Jesus Christ",
+      "The church"
+    ],
+    "answer": "God, the Father of our Lord Jesus Christ"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:4",
+    "question": "What had Paul heard about the believers? (Colossians 1:4)",
+    "options": [
+      "Their wealth and generosity",
+      "Their faith in Christ Jesus and love for all God's people",
+      "Their wisdom and knowledge",
+      "Their fasting and prayer"
+    ],
+    "answer": "Their faith in Christ Jesus and love for all God's people"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:5",
+    "question": "What springs from hope? (Colossians 1:5)",
+    "options": [
+      "Grace and peace",
+      "Wisdom and understanding",
+      "Faith and love",
+      "Endurance and patience"
+    ],
+    "answer": "Faith and love"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:5",
+    "question": "Where is their hope stored? (Colossians 1:5)",
+    "options": [
+      "Jerusalem",
+      "The church",
+      "Heaven",
+      "The temple"
+    ],
+    "answer": "Heaven"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "What has come to the Colossians? (Colossians 1:6)",
+    "options": [
+      "A prophecy",
+      "The gospel",
+      "A vision",
+      "A commandment"
+    ],
+    "answer": "The gospel"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "What is the gospel doing throughout the whole world? (Colossians 1:6)",
+    "options": [
+      "Teaching wisdom",
+      "Gathering people",
+      "Bearing fruit and growing",
+      "Building churches"
+    ],
+    "answer": "Bearing fruit and growing"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "Since when has the gospel been bearing fruit among the Colossians? (Colossians 1:6)",
+    "options": [
+      "Since Paul visited them",
+      "Since Epaphras arrived",
+      "Since the day they heard it",
+      "Since Timothy preached"
+    ],
+    "answer": "Since the day they heard it"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "What did the Colossians truly understand? (Colossians 1:6)",
+    "options": [
+      "The Law",
+      "God's grace",
+      "The prophets",
+      "The temple"
+    ],
+    "answer": "God's grace"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "Where is the gospel growing? (Colossians 1:6)",
+    "options": [
+      "In Colossae only",
+      "In Asia only",
+      "Throughout the whole world",
+      "In Rome only"
+    ],
+    "answer": "Throughout the whole world"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "What two things is the gospel doing? (Colossians 1:6)",
+    "options": [
+      "Teaching and preaching",
+      "Bearing fruit and growing",
+      "Healing and saving",
+      "Building and expanding"
+    ],
+    "answer": "Bearing fruit and growing"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:6",
+    "question": "What happened after the Colossians heard the gospel? (Colossians 1:6)",
+    "options": [
+      "They were baptized",
+      "They joined the church",
+      "They truly understood God's grace",
+      "They met Paul"
+    ],
+    "answer": "They truly understood God's grace"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:7",
+    "question": "From whom did the Colossians learn the gospel? (Colossians 1:7)",
+    "options": [
+      "Paul",
+      "Timothy",
+      "Epaphras",
+      "Peter"
+    ],
+    "answer": "Epaphras"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:7",
+    "question": "What kind of servant was Epaphras? (Colossians 1:7)",
+    "options": [
+      "Wise servant",
+      "Faithful minister of Christ",
+      "Traveling preacher",
+      "Church elder"
+    ],
+    "answer": "Faithful minister of Christ"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:7",
+    "question": "Who was the faithful minister of Christ? (Colossians 1:7)",
+    "options": [
+      "Paul",
+      "Timothy",
+      "Epaphras",
+      "Barnabas"
+    ],
+    "answer": "Epaphras"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:8",
+    "question": "What did Epaphras tell Paul about the Colossians? (Colossians 1:8)",
+    "options": [
+      "Their faith",
+      "Their patience",
+      "Their love in the Spirit",
+      "Their generosity"
+    ],
+    "answer": "Their love in the Spirit"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:9",
+    "question": "Since when had Paul been praying for the Colossians? (Colossians 1:9)",
+    "options": [
+      "Since he visited them",
+      "Since the day he heard about them",
+      "Since Timothy wrote to him",
+      "Since Epaphras left"
+    ],
+    "answer": "Since the day he heard about them"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:9",
+    "question": "What did Paul pray that God would fill them with? (Colossians 1:9)",
+    "options": [
+      "Power and strength",
+      "Faith and hope",
+      "Knowledge of His will",
+      "Grace and peace"
+    ],
+    "answer": "Knowledge of His will"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:9",
+    "question": "Through what would God give this knowledge? (Colossians 1:9)",
+    "options": [
+      "Through teachers",
+      "Through prophets",
+      "Through all wisdom and understanding that the Spirit gives",
+      "Through miracles"
+    ],
+    "answer": "Through all wisdom and understanding that the Spirit gives"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:9",
+    "question": "What is given by the Spirit according to Colossians 1:9? (Colossians 1:9)",
+    "options": [
+      "Faith and hope",
+      "Knowledge of His will, wisdom and understanding",
+      "Gifts and talents",
+      "Endurance and patience"
+    ],
+    "answer": "Knowledge of His will, wisdom and understanding"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "Why did Paul pray for the Colossians? (Colossians 1:10)",
+    "options": [
+      "To make them rich",
+      "To make them leaders",
+      "So they may live a life worthy of the Lord",
+      "So they would travel"
+    ],
+    "answer": "So they may live a life worthy of the Lord"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "How can believers live a life worthy of the Lord? (Colossians 1:10)",
+    "options": [
+      "By attending church",
+      "By pleasing Him in every way",
+      "By giving offerings",
+      "By fasting"
+    ],
+    "answer": "By pleasing Him in every way"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "What should believers do in every good work? (Colossians 1:10)",
+    "options": [
+      "Teach",
+      "Pray",
+      "Bear fruit",
+      "Serve"
+    ],
+    "answer": "Bear fruit"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "In what should believers grow? (Colossians 1:10)",
+    "options": [
+      "Wealth",
+      "Fame",
+      "Knowledge of God",
+      "Influence"
+    ],
+    "answer": "Knowledge of God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "How can believers please God? (Colossians 1:10)",
+    "options": [
+      "By praying daily",
+      "By bearing fruit in every good work and growing in the knowledge of God",
+      "By giving money",
+      "By traveling"
+    ],
+    "answer": "By bearing fruit in every good work and growing in the knowledge of God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "What kind of life should a believer live? (Colossians 1:10)",
+    "options": [
+      "A successful life",
+      "A peaceful life",
+      "A life worthy of the Lord",
+      "A wealthy life"
+    ],
+    "answer": "A life worthy of the Lord"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "What does Paul want believers to do in every way? (Colossians 1:10)",
+    "options": [
+      "Serve others",
+      "Please God",
+      "Pray continually",
+      "Teach others"
+    ],
+    "answer": "Please God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "With what does Paul pray that believers will be strengthened? (Colossians 1:10)",
+    "options": [
+      "Wisdom",
+      "Faith",
+      "All power",
+      "Love"
+    ],
+    "answer": "All power"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "According to what are believers strengthened? (Colossians 1:10)",
+    "options": [
+      "Their faith",
+      "Their works",
+      "His glorious might",
+      "Their wisdom"
+    ],
+    "answer": "His glorious might"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "Why are believers strengthened with God's power? (Colossians 1:10)",
+    "options": [
+      "To become leaders",
+      "To gain wisdom",
+      "To have great endurance and patience",
+      "To become rich"
+    ],
+    "answer": "To have great endurance and patience"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:10",
+    "question": "What two qualities does God's power help believers develop? (Colossians 1:10)",
+    "options": [
+      "Faith and love",
+      "Wisdom and knowledge",
+      "Endurance and patience",
+      "Grace and peace"
+    ],
+    "answer": "Endurance and patience"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:12",
+    "question": "Who should believers give joyful thanks to? (Colossians 1:12)",
+    "options": [
+      "Paul",
+      "Timothy",
+      "The Father",
+      "Epaphras"
+    ],
+    "answer": "The Father"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:12",
+    "question": "What has the Father qualified believers to share in? (Colossians 1:12)",
+    "options": [
+      "The kingdom of heaven",
+      "The inheritance of His holy people",
+      "Eternal rewards",
+      "Church leadership"
+    ],
+    "answer": "The inheritance of His holy people"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:12",
+    "question": "With whom do believers share this inheritance? (Colossians 1:12)",
+    "options": [
+      "Angels",
+      "Apostles",
+      "His holy people",
+      "Prophets"
+    ],
+    "answer": "His holy people"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:12",
+    "question": "In what kingdom is this inheritance found? (Colossians 1:12)",
+    "options": [
+      "Kingdom of heaven",
+      "Kingdom of God",
+      "Kingdom of light",
+      "Kingdom of peace"
+    ],
+    "answer": "Kingdom of light"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:13",
+    "question": "From what has God rescued us? (Colossians 1:13)",
+    "options": [
+      "Sin",
+      "Death",
+      "The dominion of darkness",
+      "Temptation"
+    ],
+    "answer": "The dominion of darkness"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:13",
+    "question": "Into whose kingdom has God brought us? (Colossians 1:13)",
+    "options": [
+      "The kingdom of angels",
+      "The kingdom of His beloved Son",
+      "The kingdom of heaven",
+      "The kingdom of light"
+    ],
+    "answer": "The kingdom of His beloved Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:14",
+    "question": "What comes with redemption? (Colossians 1:14)",
+    "options": [
+      "Peace",
+      "Grace",
+      "Forgiveness of sins",
+      "Wisdom"
+    ],
+    "answer": "Forgiveness of sins"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:15",
+    "question": "Who is the image of the invisible God? (Colossians 1:15)",
+    "options": [
+      "Paul",
+      "The Son",
+      "Timothy",
+      "Moses"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:15",
+    "question": "Who is the firstborn over all creation? (Colossians 1:15)",
+    "options": [
+      "Adam",
+      "David",
+      "The Son",
+      "Abraham"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:15",
+    "question": "The Son is the image of whom? (Colossians 1:15)",
+    "options": [
+      "God the Father",
+      "The invisible God",
+      "The Holy Spirit",
+      "Heaven"
+    ],
+    "answer": "The invisible God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:16",
+    "question": "Through whom were all things created? (Colossians 1:16)",
+    "options": [
+      "God the Father",
+      "Angels",
+      "Jesus Christ",
+      "The apostles"
+    ],
+    "answer": "Jesus Christ"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:16",
+    "question": "What things were created through Him? (Colossians 1:16)",
+    "options": [
+      "Things in heaven only",
+      "Things on earth only",
+      "All things in heaven and on earth, visible and invisible",
+      "People only"
+    ],
+    "answer": "All things in heaven and on earth, visible and invisible"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:17",
+    "question": "Who existed before all things? (Colossians 1:17)",
+    "options": [
+      "God the Father",
+      "The Son",
+      "Moses",
+      "Adam"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:17",
+    "question": "Through whom do all things hold together? (Colossians 1:17)",
+    "options": [
+      "The church",
+      "Angels",
+      "The Son",
+      "The Spirit"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:18",
+    "question": "Who is the head of the body? (Colossians 1:18)",
+    "options": [
+      "Paul",
+      "Peter",
+      "The Son",
+      "Timothy"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:18",
+    "question": "What does the body symbolize? (Colossians 1:18)",
+    "options": [
+      "Israel",
+      "Heaven",
+      "The church",
+      "Believers"
+    ],
+    "answer": "The church"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:18",
+    "question": "Who is the firstborn from among the dead? (Colossians 1:18)",
+    "options": [
+      "Lazarus",
+      "The Son",
+      "Elijah",
+      "Moses"
+    ],
+    "answer": "The Son"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:18",
+    "question": "What does the Son have in everything? (Colossians 1:18)",
+    "options": [
+      "Authority",
+      "Power",
+      "Supremacy",
+      "Wisdom"
+    ],
+    "answer": "Supremacy"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:19",
+    "question": "What was God pleased to have dwell in the Son? (Colossians 1:19)",
+    "options": [
+      "Wisdom",
+      "Power",
+      "All His fullness",
+      "Glory"
+    ],
+    "answer": "All His fullness"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "What did God reconcile to Himself? (Colossians 1:20)",
+    "options": [
+      "People only",
+      "Israel only",
+      "All things",
+      "The church only"
+    ],
+    "answer": "All things"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "Which things did God reconcile? (Colossians 1:20)",
+    "options": [
+      "Things on earth only",
+      "Things in heaven only",
+      "Things on earth and things in heaven",
+      "Angels and people"
+    ],
+    "answer": "Things on earth and things in heaven"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "How did God make peace? (Colossians 1:20)",
+    "options": [
+      "Through prayer",
+      "Through the law",
+      "Through Jesus' blood shed on the cross",
+      "Through sacrifices"
+    ],
+    "answer": "Through Jesus' blood shed on the cross"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "What was shed on the cross? (Colossians 1:20)",
+    "options": [
+      "Water",
+      "Oil",
+      "Jesus' blood",
+      "Tears"
+    ],
+    "answer": "Jesus' blood"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "Why did Jesus shed His blood on the cross? (Colossians 1:20)",
+    "options": [
+      "To save Israel",
+      "To make peace and reconcile us to God",
+      "To start the church",
+      "To teach people"
+    ],
+    "answer": "To make peace and reconcile us to God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:20",
+    "question": "Who made it possible for sinners to be reconciled to God? (Colossians 1:20)",
+    "options": [
+      "Paul",
+      "Peter",
+      "Jesus Christ",
+      "Moses"
+    ],
+    "answer": "Jesus Christ"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:21",
+    "question": "What were we once? (Colossians 1:21)",
+    "options": [
+      "Holy",
+      "Friends of God",
+      "Alienated from God",
+      "Perfect"
+    ],
+    "answer": "Alienated from God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:21",
+    "question": "From whom were we alienated? (Colossians 1:21)",
+    "options": [
+      "The church",
+      "God",
+      "The apostles",
+      "Heaven"
+    ],
+    "answer": "God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:21",
+    "question": "Because we were alienated from God, what were we in our minds? (Colossians 1:21)",
+    "options": [
+      "Servants",
+      "Children",
+      "Enemies of God",
+      "Strangers"
+    ],
+    "answer": "Enemies of God"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:21",
+    "question": "Why were we alienated from God? (Colossians 1:21)",
+    "options": [
+      "Because of our weakness",
+      "Because of our evil behavior",
+      "Because of fear",
+      "Because of temptation"
+    ],
+    "answer": "Because of our evil behavior"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:22",
+    "question": "How has God reconciled us? (Colossians 1:22)",
+    "options": [
+      "Through prayer",
+      "Through Christ's physical body through death",
+      "Through obedience",
+      "Through sacrifices"
+    ],
+    "answer": "Through Christ's physical body through death"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:22",
+    "question": "Why did Christ die for us? (Colossians 1:22)",
+    "options": [
+      "To teach us",
+      "To present us holy in God's sight",
+      "To make us wise",
+      "To make us strong"
+    ],
+    "answer": "To present us holy in God's sight"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:22",
+    "question": "How does God present believers in His sight? (Colossians 1:22)",
+    "options": [
+      "Holy and without blemish",
+      "Wise and strong",
+      "Faithful and loving",
+      "Powerful and victorious"
+    ],
+    "answer": "Holy and without blemish"
+  },
+  {
+    "type": "mcq",
+    "book": "Colossians",
+    "chapter": 1,
+    "reference": "Colossians 1:22",
+    "question": "What are believers free from because of Christ's death? (Colossians 1:22)",
+    "options": [
+      "Fear",
+      "Temptation",
+      "Accusation",
+      "Weakness"
+    ],
+    "answer": "Accusation"
+  }
+]
