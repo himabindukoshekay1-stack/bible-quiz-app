@@ -3,8 +3,6 @@ import { io } from "socket.io-client";
 import "./App.css";
 
 const socket = io();
-const [source, setSource] =
-  useState("ai");
 
 const bibleBooks = {
   Genesis: 50,
@@ -76,9 +74,12 @@ const bibleBooks = {
 };
 
 function App() {
+	
+
   const [role, setRole] = useState("");
   const [pin, setPin] = useState("");
   const [name, setName] = useState("");
+  
 
   const [selectedBook, setSelectedBook] = useState("Genesis");
   const [selectedChapter, setSelectedChapter] = useState("1");
