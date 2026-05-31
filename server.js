@@ -7,7 +7,6 @@ const path = require("path");
 const { Server } = require("socket.io");
 const OpenAI = require("openai");
 const fs = require("fs");
-const path = require("path");
 
 const app = express();
 
@@ -978,7 +977,7 @@ server.listen(
 );
 
 const fs = require("fs");
-const path = require("path");
+
 
 function getAdhocQuestions(book, chapter) {
 
