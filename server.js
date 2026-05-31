@@ -512,22 +512,61 @@ function clearRoomTimers(room) {
     room.revealTimeout = null;
   }
 }
+
 function sendQuestion(pin) {
 
   const room = rooms[pin];
 
   if (!room) return;
-  if (
-    !adhocQuestions ||
-    adhocQuestions.length === 0
-  ) {
-    socket.emit(
-      "errorMessage",
-      `No Adhoc questions found for ${book} ${chapter}`
+
+  const q =
+    room.questions[
+      room.currentQuestion
+    ];
+
+  if (!q) return;
+
+  clearRoomTimers(room);
+
+  room.answers = {};
+  room.timeLeft = QUESTION_TIME;
+  room.paused = false;
+
+  io.to(pin).emit("question", {
+    number:
+      room.currentQuestion + 1,
+    total: room.questions.length,
+    ...q,
+    timeLeft: room.timeLeft,
+  });
+
+  io.to(pin).emit(
+    "playersUpdate",
+    leaderboardWithStatus(room)
+  );
+
+  room.timer = setInterval(() => {
+
+    if (room.paused) return;
+
+    room.timeLeft--;
+
+    io.to(pin).emit(
+      "timer",
+      room.timeLeft
     );
 
-    return;
-  }
+    if (room.timeLeft <= 0) {
+
+      clearInterval(room.timer);
+
+      room.timer = null;
+
+      reveal(pin);
+    }
+
+  }, 1000);
+}
 
   room.questions =
     adhocQuestions
