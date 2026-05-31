@@ -660,21 +660,21 @@ socket.on(
 
     try {
 
-      if (source === "adhoc") {
+if (source === "adhoc") {
 
-        room.questions =
-          getAdhocQuestions(
-            book,
-            chapter
-          );
+  room.questions =
+    getAdhocQuestions(
+      book,
+      chapter
+    );
 
-        room.questions =
-          room.questions
-            .sort(() => Math.random() - 0.5)
-            .slice(
-              0,
-              Number(count) || 20
-            );
+  // Shuffle only
+  room.questions =
+    room.questions.sort(
+      () => Math.random() - 0.5
+    );
+
+}
 
       } else {
 
@@ -703,10 +703,10 @@ socket.on(
 
       console.error(err);
 
-      socket.emit(
-        "errorMessage",
-        "Failed to load questions"
-      );
+socket.emit(
+  "errorMessage",
+  `Loaded ${room.questions.length} Adhoc questions`
+);
     }
   }
 );
