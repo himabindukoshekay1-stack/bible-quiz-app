@@ -676,87 +676,79 @@ io.on("connection", (socket) => {
     socket.emit("roomCreated", pin);
   });
 
-  socket.on(
-    "setQuiz",
-    async ({
-      pin,
-      book,
-      chapter,
-      count,
-      type,
-    }) => {
-      const room = rooms[pin];
+socket.on(
+  "setQuiz",
+  async ({
+    pin,
+    book,
+    chapter,
+    count,
+    type,
+    source,
+  }) => {
 
-      if (!room) {
-        socket.emit(
-          "errorMessage",
-          "Room not found"
-        );
+    const room = rooms[pin];
 
-        return;
-      }
+    if (!room) {
+      socket.emit(
+        "errorMessage",
+        "Room not found"
+      );
+      return;
+    }
 
-      try {
+    try {
+
+      if (source === "adhoc") {
+
+        room.questions =
+          getAdhocQuestions(
+            book,
+            chapter
+          );
+
+        room.questions =
+          room.questions
+            .sort(() => Math.random() - 0.5)
+            .slice(
+              0,
+              Number(count) || 20
+            );
+
+      } else {
+
         socket.emit(
           "errorMessage",
           "Generating NIV questions..."
         );
 
-if (source === "adhoc") {
+        room.questions =
+          await generateQuestions(
+            book,
+            chapter,
+            Number(count) || 20,
+            type || "mcq"
+          );
+      }
 
-  room.questions =
-    getAdhocQuestions(
-      book,
-      chapter
-    );
+      room.currentQuestion = -1;
 
-  room.questions =
-    room.questions
-      .sort(() => Math.random() - 0.5)
-      .slice(
-        0,
-        Number(count) || 20
+      socket.emit(
+        "errorMessage",
+        `Loaded ${room.questions.length} questions`
       );
 
-} else {
+    } catch (err) {
 
-  socket.emit(
-    "errorMessage",
-    "Generating NIV questions..."
-  );
+      console.error(err);
 
-  room.questions =
-    await generateQuestions(
-      book,
-      chapter,
-      Number(count) || 20,
-      type || "mcq"
-    );
-}
-
-        room.currentQuestion = 0;
-        room.answers = {};
-
-        io.to(pin).emit("quizSet", {
-          count:
-            room.questions.length,
-        });
-
-        socket.emit(
-          "errorMessage",
-          `Loaded ${room.questions.length} questions`
-        );
-      } catch (e) {
-        console.error(e);
-
-        socket.emit(
-          "errorMessage",
-          e.message ||
-            "Failed to generate quiz"
-        );
-      }
+      socket.emit(
+        "errorMessage",
+        "Failed to load questions"
+      );
     }
-  );
+  }
+);
 
   socket.on(
     "joinRoom",
