@@ -75,12 +75,12 @@ const bibleBooks = {
 
 function App() {
 	
-  const [source, setSource] =
-  useState("ai");
-
   const [role, setRole] = useState("");
   const [pin, setPin] = useState("");
   const [name, setName] = useState("");
+  
+  const [source, setSource] =
+  useState("ai");
   
 
   const [selectedBook, setSelectedBook] = useState("Genesis");
