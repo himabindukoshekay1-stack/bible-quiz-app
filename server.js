@@ -660,21 +660,18 @@ socket.on(
 
     try {
 
-if (source === "adhoc") {
+      if (source === "adhoc") {
 
-  room.questions =
-    getAdhocQuestions(
-      book,
-      chapter
-    );
+        room.questions =
+          getAdhocQuestions(
+            book,
+            chapter
+          );
 
-  // Shuffle only
-  room.questions =
-    room.questions.sort(
-      () => Math.random() - 0.5
-    );
-
-}
+        room.questions =
+          room.questions.sort(
+            () => Math.random() - 0.5
+          );
 
       } else {
 
@@ -703,13 +700,15 @@ if (source === "adhoc") {
 
       console.error(err);
 
-socket.emit(
-  "errorMessage",
-  `Loaded ${room.questions.length} Adhoc questions`
-);
+      socket.emit(
+        "errorMessage",
+        "Failed to load questions"
+      );
     }
+
   }
 );
+
 
   socket.on(
     "joinRoom",
@@ -930,25 +929,3 @@ server.listen(
 );
 
 
-
-function getAdhocQuestions(book, chapter) {
-
-  const fileName =
-    `${book.toLowerCase()}${chapter}.json`
-      .replace(/\s+/g, "");
-
-  const filePath = path.join(
-    __dirname,
-    "questions",
-    "adhoc",
-    fileName
-  );
-
-  if (!fs.existsSync(filePath)) {
-    return [];
-  }
-
-  return JSON.parse(
-    fs.readFileSync(filePath, "utf8")
-  );
-}
