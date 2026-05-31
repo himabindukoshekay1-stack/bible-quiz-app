@@ -976,7 +976,6 @@ server.listen(
   }
 );
 
-const fs = require("fs");
 
 
 function getAdhocQuestions(book, chapter) {
