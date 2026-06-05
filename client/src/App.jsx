@@ -460,7 +460,7 @@ function App() {
     }
   >
     <option value="ai">
-      AI Generated
+      Randomly Generated
     </option>
 
     <option value="adhoc">
